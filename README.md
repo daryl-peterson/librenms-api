@@ -1,2 +1,2 @@
 # librenms-api
-LibreNMS API 
+LibreNMS API Client
