@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    bootstrap="tests/boot.php"
+    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.3/phpunit.xsd"
+    cacheDirectory=".phpunit.cache"
+    failOnWarning="true"
+    colors="true"
+>
+  <logging>
+    <junit outputFile="logs/junit.xml"/>
+    <teamcity outputFile="logs/teamcity.txt"/>
+    <testdoxHtml outputFile="logs/testdox.html"/>
+    <testdoxText outputFile="logs/testdox.txt"/>
+  </logging>
+  <testsuites>
+    <testsuite name="LibrenmsApi">
+      <file>tests/LogTest.php</file>
+    </testsuite>
+  </testsuites>
+</phpunit>
+
