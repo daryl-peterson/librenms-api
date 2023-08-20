@@ -3,9 +3,11 @@
 use LibrenmsApiClient\ApiClient;
 
 require_once 'vendor/autoload.php';
-// 597da5a7444bbe2104aa30ef8afb6d2f
-$api = new ApiClient('https://libre.totelcom.net/', '374369c2e64c8b10c5f5dcf9c47fefe7');
 
+$url = readline('Enter URL : ');
+$token = readline('Enter Token : ');
+
+$api = new ApiClient($url, $token);
 /*
 $rules = [];
 $devices[] = 1;
