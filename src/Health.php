@@ -24,6 +24,8 @@ class Health
      * Get a list of overall health graphs available.
      *
      * @param int|string $hostname Hostname can be either the device hostname or id
+     *
+     * @return array|null Array of stdClass Objects
      */
     public function getTypes(int|string $hostname): ?array
     {
@@ -37,6 +39,8 @@ class Health
      * @param string     $type     device_current, device_dbm, device_state,
      *                             device_temperature, device_voltage, device_processor,
      *                             device_storage, device_mempool
+     *
+     * @return array|null Array of stdClass Objects
      */
     public function getSensors(int|string $hostname, string $type): ?array
     {
@@ -47,6 +51,8 @@ class Health
      * Get the health sensors information based on ID.
      *
      * @param int|string $hostname Hostname can be either the device hostname or id
+     *
+     * @return array|null Array of stdClass Objects
      */
     public function getValue(int|string $hostname, string $type, int $sensor_id): ?array
     {
