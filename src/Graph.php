@@ -30,6 +30,8 @@ class Graph
     /**
      * Get a graph of a port for a particular device.
      *
+     * @param int|string $hostname Hostname can be either the device hostname or id
+     *
      * @see https://docs.librenms.org/API/Devices/#get_graph_by_port_hostname
      */
     public function device(int|string $hostname, array $interfaces = null, string $type = null): ?array
@@ -46,7 +48,7 @@ class Graph
         if (isset($interfaces)) {
             $ports = $this->fixInterfaceArray($interfaces);
         } else {
-            $ports = $this->api->port->device($device->device_id);
+            $ports = $this->api->port->getByDevice($device->device_id);
         }
 
         if (!isset($ports)) {

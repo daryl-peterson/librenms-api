@@ -3,7 +3,7 @@
 namespace LibrenmsApiClient;
 
 /**
- * Class description.
+ * LibreNMS API Ports.
  *
  * @author      Daryl Peterson <@gmail.com>
  * @copyright   Copyright (c) 2020, Daryl Peterson
@@ -66,7 +66,7 @@ class Port
      *
      * @see https://docs.librenms.org/API/Devices/#get_port_graphs
      */
-    public function device(int|string $hostname): ?array
+    public function getByDevice(int|string $hostname): ?array
     {
         $columns = urlencode('device_id,port_id,ifName,ifDescr,ifAlias,ifMtu,ifType,ifSpeed,ifOperStatus,ifAdminStatus,ifPhysAddress,ifInErrors,ifOutErrors');
         $url = $this->api->getApiUrl("/devices/$hostname/ports?columns=".$columns);

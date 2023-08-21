@@ -314,7 +314,7 @@ duration: required - Duration of Maintenance in format H:i / Hrs:Mins
      */
     public function ports(int|string $hostname): ?array
     {
-        return $this->api->port->device($hostname);
+        return $this->api->port->getByDevice($hostname);
     }
 
     /**
