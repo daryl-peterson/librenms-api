@@ -153,6 +153,9 @@ class Device
         return $response['devices'];
     }
 
+    /**
+     * Get device sensors.
+     */
     public function sensor(int|string $hostname): ?array
     {
         return $this->api->sensor->get($hostname);
@@ -240,6 +243,78 @@ class Device
         }
 
         return true;
+    }
+
+/*
+
+title: optional - Some title for the Maintenance
+Will be replaced with hostname if omitted
+notes: optional - Some description for the Maintenance
+Will also be added to device notes if user prefs "Add schedule notes to devices notes" is set
+start: optional - start time of Maintenance in full format Y-m-d H:i:00
+eg: 2022-08-01 22:45:00
+Current system time now() will be used if omitted
+duration: required - Duration of Maintenance in format H:i / Hrs:Mins
+
+*/
+
+    /**
+     * Undocumented function.
+     *
+     * @param int|string  $hostname Hostname can be either the device hostname or id
+     * @param string      $duration Duration of Maintenance in format H:i / Hrs:Mins
+     * @param string|null $title    Title for the Maintenance
+     * @param string|null $notes    Description for the Maintenance
+     * @param string|null $start    start time of Maintenance in full format Y-m-d H:i:00
+     *
+     * @see https://docs.librenms.org/API/Devices/#maintenance_device
+     */
+    public function maintenance(
+        int|string $hostname,
+        string $duration,
+        string $title = null,
+        string $notes = null,
+        string $start = null
+    ): bool {
+        $data['duration'] = $duration;
+
+        if (isset($title)) {
+            $data['title'] = $title;
+        }
+        if (isset($notes)) {
+            $data['notes'] = $notes;
+        }
+        if (isset($start)) {
+            $data['start'] = $start;
+        }
+
+        $url = $this->api->getApiUrl("/devices/$hostname/maintenance");
+
+        $result = $this->api->post($url, $data);
+
+        if (!isset($result['result']) || !isset($result['code'])) {
+            return false;
+        }
+
+        if (200 !== $result['code']) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Get a list of ports for a particular device.
+     *
+     * @param int|string $hostname Hostname can be either the device hostname or id
+     *
+     * @return array|null Array of stdClass Objects
+     *
+     * @see https://docs.librenms.org/API/Devices/#get_port_graphs
+     */
+    public function ports(int|string $hostname): ?array
+    {
+        return $this->api->port->device($hostname);
     }
 
     /**

@@ -16,6 +16,7 @@ class ApiClient
     public Alert $alert;
     public Arp $arp;
     public Device $device;
+    public Graph $graph;
     public Inventory $inventory;
     public Link $link;
     public Location $location;
@@ -39,6 +40,7 @@ class ApiClient
         $this->alert = new Alert($this);
         $this->arp = new Arp($this);
         $this->device = new Device($this);
+        $this->graph = new Graph($this);
         $this->inventory = new Inventory($this);
         $this->link = new Link($this);
         $this->location = new Location($this);

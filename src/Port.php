@@ -21,11 +21,11 @@ class Port
     }
 
     /**
-     * Undocumented function.
+     * Get port by id.
      *
      * @see https://docs.librenms.org/API/Ports/#get_port_info
      */
-    public function get(int $id)
+    public function get(int $id): ?\stdClass
     {
         $url = $this->api->getApiUrl("/ports/$id");
         $result = $this->api->get($url);
@@ -40,6 +40,8 @@ class Port
     /**
      * Get port listing.
      *
+     * @return array|null Array of stdClass Objects
+     *
      * @see https://docs.librenms.org/API/Ports/#get_all_ports
      */
     public function listing(): ?array
@@ -49,6 +51,32 @@ class Port
         $result = $this->api->get($url);
 
         if (!isset($result['ports'])) {
+            return null;
+        }
+
+        return $result['ports'];
+    }
+
+    /**
+     * Get a list of ports for a particular device.
+     *
+     * @param int|string $hostname Hostname can be either the device hostname or id
+     *
+     * @return array|null Array of stdClass Objects
+     *
+     * @see https://docs.librenms.org/API/Devices/#get_port_graphs
+     */
+    public function device(int|string $hostname): ?array
+    {
+        $columns = urlencode('device_id,port_id,ifName,ifDescr,ifAlias,ifMtu,ifType,ifSpeed,ifOperStatus,ifAdminStatus,ifPhysAddress,ifInErrors,ifOutErrors');
+        $url = $this->api->getApiUrl("/devices/$hostname/ports?columns=".$columns);
+        $result = $this->api->get($url);
+
+        if (!isset($result['ports'])) {
+            return null;
+        }
+
+        if (0 === count($result['ports'])) {
             return null;
         }
 
