@@ -44,9 +44,14 @@ class Port
      *
      * @see https://docs.librenms.org/API/Ports/#get_all_ports
      */
-    public function listing(): ?array
+    public function getListing(string $columns = null): ?array
     {
-        $columns = urlencode('device_id,port_id,deleted,ifName,ifDescr,ifAlias,ifMtu,ifType,ifSpeed,ifOperStatus,ifAdminStatus,ifPhysAddress,ifInErrors,ifOutErrors');
+        $default = 'device_id,port_id,deleted,ifName,ifDescr,ifAlias,ifMtu,ifType,ifSpeed,ifOperStatus,ifAdminStatus,ifPhysAddress,ifInErrors,ifOutErrors';
+        if (!isset($columns)) {
+            $columns = $default;
+        }
+
+        $columns = urlencode($columns);
         $url = $this->api->getApiUrl('/ports?columns='.$columns);
         $result = $this->api->get($url);
 
@@ -55,6 +60,22 @@ class Port
         }
 
         return $result['ports'];
+    }
+
+    /**
+     * Update a device port notes field in the devices_attrs database.
+     *
+     * @param int|string $hostname Hostname can be either the device hostname or id
+     *
+     * @see https://docs.librenms.org/API/Devices/#update_device_port_notes
+     */
+    public function setNotes(int|string $hostname, int $port_id, string $note)
+    {
+        $url = $this->api->getApiUrl("/devices/$hostname/port/$port_id");
+        $result = $this->api->patch($url, ['notes' => $note]);
+        print_r($result);
+
+        return $result;
     }
 
     /**

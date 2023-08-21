@@ -44,7 +44,7 @@ class Vlan
      *
      * @see https://docs.librenms.org/API/Switching/#list_vlans
      */
-    public function listing(): ?array
+    public function getListing(): ?array
     {
         $url = $this->api->getApiUrl('/resources/vlans');
         $result = $this->api->get($url);

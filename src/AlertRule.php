@@ -11,7 +11,7 @@ namespace LibrenmsApiClient;
  * @copyright   Copyright (c) 2020, Daryl Peterson
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
- * @since       1.0.0
+ * @since       0.0.1
  */
 class AlertRule
 {
@@ -85,7 +85,7 @@ class AlertRule
      */
     public function getByName(string $name): ?\stdClass
     {
-        $rules = $this->listing();
+        $rules = $this->getListing();
 
         $result = null;
         foreach ($rules as $rule) {
@@ -128,7 +128,7 @@ class AlertRule
      *
      * @see https://docs.librenms.org/API/Alerts/#list_alert_rules
      */
-    public function listing(): ?array
+    public function getListing(): ?array
     {
         $url = $$this->api->getApiUrl('/rules');
         $result = $$this->api->get($url);

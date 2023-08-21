@@ -17,6 +17,7 @@ class ApiClient
     public Arp $arp;
     public Device $device;
     public Graph $graph;
+    public Health $health;
     public Inventory $inventory;
     public Link $link;
     public Location $location;
@@ -41,6 +42,7 @@ class ApiClient
         $this->arp = new Arp($this);
         $this->device = new Device($this);
         $this->graph = new Graph($this);
+        $this->health = new Health($this);
         $this->inventory = new Inventory($this);
         $this->link = new Link($this);
         $this->location = new Location($this);
@@ -72,6 +74,8 @@ class ApiClient
 
         curl_setopt($curl, CURLOPT_HTTPHEADER, [
             'X-Auth-Token: '.$this->token,
+            'User-Agent: PHP',
+            'Accept: */*',
             'Content-Type: application/json',
         ]);
 
@@ -102,12 +106,7 @@ class ApiClient
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
 
         if (isset($data)) {
-            print_r($data);
-
-            echo "\n\n";
             $payload = json_encode($data);
-            echo $payload."\n\n";
-
             curl_setopt($curl, CURLOPT_POSTFIELDS, $payload);
         }
 
@@ -162,7 +161,6 @@ class ApiClient
     private function response(\CurlHandle $curl, string $url): array
     {
         $response = curl_exec($curl);
-
         if (!$response) {
             $error = curl_error($curl);
             if (empty($error)) {
@@ -176,7 +174,6 @@ class ApiClient
         $code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         $headers = $this->headersToArray(substr($response, 0, $headerSize));
         $type = $headers['Content-Type'];
-
         $body = substr($response, $headerSize);
 
         curl_close($curl);

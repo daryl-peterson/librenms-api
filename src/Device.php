@@ -5,8 +5,6 @@ namespace LibrenmsApiClient;
 /**
  * LibreNMS API Device.
  *
- * @category
- *
  * @author      Daryl Peterson <@gmail.com>
  * @copyright   Copyright (c) 2020, Daryl Peterson
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
@@ -83,7 +81,7 @@ class Device
     /**
      * Get device list.
      */
-    public function listing(bool $force = false): ?array
+    public function getListing(bool $force = false): ?array
     {
         if (!$force) {
             if (isset($this->list) & is_array($this->list)) {
@@ -156,7 +154,7 @@ class Device
     /**
      * Get device sensors.
      */
-    public function sensor(int|string $hostname): ?array
+    public function getSensors(int|string $hostname): ?array
     {
         return $this->api->sensor->get($hostname);
     }
@@ -188,7 +186,7 @@ class Device
     public function getByIp(string $ip): ?\stdClass
     {
         $ip = $this->getIpField($ip);
-        $list = $this->listing();
+        $list = $this->getListing();
         if (!isset($list)) {
             return null;
         }
@@ -210,7 +208,7 @@ class Device
      *
      * @see https://docs.librenms.org/API/Devices/#availability
      */
-    public function availability(int|string $hostname): ?array
+    public function getAvailability(int|string $hostname): ?array
     {
         $url = $this->api->getApiUrl("/devices/$hostname/availability");
         $result = $this->api->get($url);
@@ -245,21 +243,8 @@ class Device
         return true;
     }
 
-/*
-
-title: optional - Some title for the Maintenance
-Will be replaced with hostname if omitted
-notes: optional - Some description for the Maintenance
-Will also be added to device notes if user prefs "Add schedule notes to devices notes" is set
-start: optional - start time of Maintenance in full format Y-m-d H:i:00
-eg: 2022-08-01 22:45:00
-Current system time now() will be used if omitted
-duration: required - Duration of Maintenance in format H:i / Hrs:Mins
-
-*/
-
     /**
-     * Undocumented function.
+     * Set a device into maintenance mode.
      *
      * @param int|string  $hostname Hostname can be either the device hostname or id
      * @param string      $duration Duration of Maintenance in format H:i / Hrs:Mins
@@ -312,7 +297,7 @@ duration: required - Duration of Maintenance in format H:i / Hrs:Mins
      *
      * @see https://docs.librenms.org/API/Devices/#get_port_graphs
      */
-    public function ports(int|string $hostname): ?array
+    public function getPorts(int|string $hostname): ?array
     {
         return $this->api->port->getByDevice($hostname);
     }
@@ -326,7 +311,7 @@ duration: required - Duration of Maintenance in format H:i / Hrs:Mins
      *
      * @see https://docs.librenms.org/API/Devices/#get_device_ip_addresses
      */
-    public function ipList(int|string $hostname): ?array
+    public function getIpList(int|string $hostname): ?array
     {
         $url = $this->api->getApiUrl("/devices/$hostname/ip");
         $result = $this->api->get($url);
@@ -347,7 +332,7 @@ duration: required - Duration of Maintenance in format H:i / Hrs:Mins
      *
      * @see https://docs.librenms.org/API/Switching/#get_links
      */
-    public function links(int|string $hostname): ?array
+    public function getLinks(int|string $hostname): ?array
     {
         return $this->api->link->get($hostname);
     }
@@ -361,9 +346,9 @@ duration: required - Duration of Maintenance in format H:i / Hrs:Mins
      *
      * @see https://docs.librenms.org/API/Logs/#list_alertlog
      */
-    public function alerts(int|string $hostname): ?array
+    public function getAlerts(int|string $hostname): ?array
     {
-        return $this->api->log->alert($hostname);
+        return $this->api->log->getAlert($hostname);
     }
 
     /**
@@ -390,9 +375,9 @@ duration: required - Duration of Maintenance in format H:i / Hrs:Mins
      *
      * @param int|string $hostname Hostname can be either the device hostname or id
      */
-    public function events(int|string $hostname): ?array
+    public function getEvents(int|string $hostname): ?array
     {
-        return $this->api->log->event($hostname);
+        return $this->api->log->getEvent($hostname);
     }
 
     /**

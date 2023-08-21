@@ -2,10 +2,10 @@
 
 namespace LibrenmsApiClient;
 
+use stdClass;
+
 /**
  * LibreNMS API graphs.
- *
- * @category
  *
  * @author      Daryl Peterson <@gmail.com>
  * @copyright   Copyright (c) 2020, Daryl Peterson
@@ -22,9 +22,68 @@ class Graph
         $this->api = $api;
     }
 
-    public function types(int|string $hostname)
+    /**
+     * Get a list of available graphs for a device, this does not include ports.
+     *
+     * @param int|string $hostname Hostname can be either the device hostname or id
+     *
+     * @return array|null Array of stdClass Objects {"desc":"Poller Time","name":"device_poller_perf"}
+     *
+     * @see https://docs.librenms.org/API/Devices/#get_graphs
+     */
+    public function getTypes(int|string $hostname): ?array
     {
-        // /devices/:hostname/graphs
+        $url = $this->api->getApiUrl("/devices/$hostname/graphs");
+        $response = $this->api->get($url);
+
+        if (!isset($response)) {
+            return null;
+        }
+
+        if (0 === count($response['graphs'])) {
+            return null;
+        }
+
+        return $response['graphs'];
+    }
+
+    /**
+     * Get a specific graph for a device, this does not include ports.
+     *
+     * @param int|string $hostname Hostname can be either the device hostname or id
+     *
+     * @return array|null Array['type'=>'image/png','src'=>'raw image']
+     *
+     * @see https://docs.librenms.org/API/Devices/#get_graph_generic_by_hostname
+     */
+    public function getByType(
+        int|string $hostname,
+        string $type,
+        string $from = null,
+        string $to = null,
+        string $output = null
+    ): ?array {
+        $url = $this->api->getApiUrl("/devices/$hostname/$type");
+        $params = [];
+        if (isset($from)) {
+            $params['from'] = $from;
+        }
+        if (isset($to)) {
+            $params['to'] = $to;
+        }
+        if (isset($output)) {
+            $params['output'] = $output;
+        }
+
+        $suffix = http_build_query($params);
+        $url .= "?$suffix";
+        $response = $this->api->get($url);
+
+        if (!isset($response['image'])) {
+            return null;
+        }
+
+        return $response['image'];
     }
 
     /**
@@ -32,9 +91,11 @@ class Graph
      *
      * @param int|string $hostname Hostname can be either the device hostname or id
      *
+     * @return array|null array['ifName']['type'=>'image/png','src'=>'raw image']
+     *
      * @see https://docs.librenms.org/API/Devices/#get_graph_by_port_hostname
      */
-    public function device(int|string $hostname, array $interfaces = null, string $type = null): ?array
+    public function getPort(int|string $hostname, array $interfaces = null, string $type = null): ?array
     {
         $result = [];
         if (!isset($type)) {
@@ -58,7 +119,7 @@ class Graph
         foreach ($ports as $port) {
             try {
                 $url = $this->api->getApiUrl("/devices/$hostname/ports/".urlencode($port->ifName)."/$type");
-                $response = $this->api->get($url, false);
+                $response = $this->api->get($url);
 
                 if (!is_array($response)) {
                     continue;
@@ -79,6 +140,24 @@ class Graph
         }
 
         return $result;
+    }
+
+    /**
+     * Write image to file.
+     */
+    public function writeToFile(array $image, string $dest): bool
+    {
+        try {
+            $result = file_put_contents($dest, $image['src']);
+        } catch (\Throwable $th) {
+            return false;
+        }
+
+        if (!$result) {
+            return false;
+        }
+
+        return true;
     }
 
     private function fixInterfaceArray(array $interfaces)

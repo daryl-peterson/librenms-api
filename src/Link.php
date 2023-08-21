@@ -3,15 +3,13 @@
 namespace LibrenmsApiClient;
 
 /**
- * Class description.
- *
- * @category
+ * Device Links CDP, LLDP ect.
  *
  * @author      Daryl Peterson <@gmail.com>
  * @copyright   Copyright (c) 2020, Daryl Peterson
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
- * @since       1.0.0
+ * @since       0.0.1
  */
 class Link
 {
@@ -29,7 +27,7 @@ class Link
      *
      * @see https://docs.librenms.org/API/Switching/#list_links
      */
-    public function listing(): ?array
+    public function getListing(): ?array
     {
         $url = $this->api->getApiUrl('/resources/links');
         $result = $this->api->get($url);

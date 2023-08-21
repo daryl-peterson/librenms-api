@@ -43,7 +43,7 @@ namespace LibrenmsApiClient;
  * @copyright   Copyright (c) 2020, Daryl Peterson
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
- * @since       1.0.0
+ * @since       0.0.1
  */
 class AlertRuleBuilder
 {

@@ -1,13 +1,9 @@
 <?php
 
-namespace LibrenmsApiClient\Tests;
-
-use PHPUnit\Framework\TestCase;
+namespace LibrenmsApiClient;
 
 /**
- * Alert API Unit tests.
- *
- * @category
+ * LibreNMS API Health.
  *
  * @author      Daryl Peterson <@gmail.com>
  * @copyright   Copyright (c) 2020, Daryl Peterson
@@ -15,10 +11,12 @@ use PHPUnit\Framework\TestCase;
  *
  * @since       0.0.1
  */
-class AlertTest extends TestCase
+class Component
 {
-    public function __construct()
+    private ApiClient $api;
+
+    public function __construct(ApiClient $api)
     {
-        // Code Here
+        $this->api = $api;
     }
 }

@@ -33,7 +33,7 @@ class Sensor
      *
      * @return array|null Array of stdClass Objects
      */
-    public function listing(bool $force = false): ?array
+    public function getListing(bool $force = false): ?array
     {
         if (!$force) {
             if (isset($this->list) & is_array($this->list)) {
@@ -91,7 +91,7 @@ class Sensor
             return null;
         }
 
-        $sensors = $this->listing($force);
+        $sensors = $this->getListing($force);
 
         if (!isset($sensors[$device->device_id])) {
             return null;
@@ -111,7 +111,7 @@ class Sensor
      */
     public function getByClass(string $class, bool $force = false): ?array
     {
-        $sensors = $this->listing($force);
+        $sensors = $this->getListing($force);
 
         print_r($sensors);
 

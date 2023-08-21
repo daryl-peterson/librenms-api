@@ -31,7 +31,7 @@ class Log
      *
      * @see https://docs.librenms.org/API/Logs/#list_alertlog
      */
-    public function alert(int|string $hostname): ?array
+    public function getAlert(int|string $hostname): ?array
     {
         $url = $this->api->getApiUrl("/logs/alertlog/$hostname");
         $result = $this->api->get($url);
@@ -56,7 +56,7 @@ class Log
      *
      * @see https://docs.librenms.org/API/Logs/#list_authlog
      */
-    public function auth(int|string $hostname): ?array
+    public function getAuth(int|string $hostname): ?array
     {
         $url = $this->api->getApiUrl("/logs/authlog/$hostname");
         $result = $this->api->get($url);
@@ -81,7 +81,7 @@ class Log
      *
      * @see https://docs.librenms.org/API/Logs/#list_eventlog
      */
-    public function event(int|string $hostname): ?array
+    public function getEvent(int|string $hostname): ?array
     {
         $url = $this->api->getApiUrl("/logs/eventlog/$hostname");
         $result = $this->api->get($url);

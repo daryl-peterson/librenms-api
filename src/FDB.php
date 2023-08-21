@@ -1,11 +1,9 @@
 <?php
 
-namespace LibrenmsApiClient\Tests;
-
-use PHPUnit\Framework\TestCase;
+namespace LibrenmsApiClient;
 
 /**
- * Alert API Unit tests.
+ * Class description.
  *
  * @category
  *
@@ -15,7 +13,7 @@ use PHPUnit\Framework\TestCase;
  *
  * @since       0.0.1
  */
-class AlertTest extends TestCase
+class FDB
 {
     public function __construct()
     {

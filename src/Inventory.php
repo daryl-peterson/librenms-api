@@ -29,7 +29,7 @@ class Inventory
      *
      * @see https://docs.librenms.org/API/Inventory/#get_inventory_for_device
      */
-    public function listing(int|string $hostname): ?array
+    public function getListing(int|string $hostname): ?array
     {
         $url = $this->api->getApiUrl("/inventory/$hostname/all");
         $result = $this->api->get($url);
@@ -63,7 +63,7 @@ class Inventory
     /**
      * Get list of hardware types.
      */
-    public function hardware(): ?array
+    public function getHardware(): ?array
     {
         return $this->getField('hardware');
     }
@@ -71,7 +71,7 @@ class Inventory
     /**
      * Get list of software versions.
      */
-    public function version(): ?array
+    public function getVersion(): ?array
     {
         return $this->getField('version');
     }
@@ -79,7 +79,7 @@ class Inventory
     /**
      * Get list of features.
      */
-    public function feature()
+    public function getFeature()
     {
         return $this->getField('features');
     }
@@ -87,9 +87,9 @@ class Inventory
     /**
      * Get a list of device types.
      */
-    public function type(): array
+    public function getType(): array
     {
-        $devices = $this->api->device->listing();
+        $devices = $this->api->device->getListing();
         $types = [];
         if (!isset($devices)) {
             return null;
@@ -115,7 +115,7 @@ class Inventory
 
     private function getField(string $field)
     {
-        $devices = $this->api->device->listing();
+        $devices = $this->api->device->getListing();
 
         $result = [];
         foreach ($devices['org'] as $device) {

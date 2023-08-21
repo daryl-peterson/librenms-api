@@ -107,7 +107,7 @@ class Alert
      *
      * @throws ApiException
      */
-    public function listing(
+    public function getListing(
         int $state,
         string $severity = null,
         string $order = null,
@@ -169,7 +169,7 @@ class Alert
     {
         $results = [];
         for ($i = 0; $i < 3; ++$i) {
-            $tmp = $this->listing($i);
+            $tmp = $this->getListing($i);
             if (is_array($tmp)) {
                 $results = array_replace($results, $tmp);
             }
