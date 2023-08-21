@@ -7,7 +7,7 @@ use LibrenmsApiClient\Log;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Log Unit tests.
+ * Log API Unit tests.
  *
  * @category
  *

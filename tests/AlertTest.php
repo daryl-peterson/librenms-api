@@ -5,7 +5,7 @@ namespace LibrenmsApiClient\Tests;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Alert API Tests.
+ * Alert API Unit tests.
  *
  * @category
  *

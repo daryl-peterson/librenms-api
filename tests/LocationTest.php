@@ -7,7 +7,7 @@ use LibrenmsApiClient\Location;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Location unit test.
+ * Location API Unit tests.
  *
  * @category
  *
@@ -19,7 +19,6 @@ class LocationTest extends TestCase
 {
     private ApiClient $api;
 
-
     public function testAdd()
     {
     }
@@ -30,7 +29,6 @@ class LocationTest extends TestCase
 
     public function testListing()
     {
-
     }
 
     public function testDelete()
