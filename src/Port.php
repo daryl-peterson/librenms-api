@@ -109,7 +109,13 @@ class Port
      *
      * @see https://docs.librenms.org/API/Ports/#search_ports
      */
-    public function search()
+    public function search(string $search)
     {
+        $search = urlencode($search);
+        // curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/ports/search/lo
+        $url = $this->api->getApiUrl("/ports/search/$search");
+        $result = $this->api->get($url);
+
+        return $result;
     }
 }
