@@ -24,8 +24,6 @@ class Health
      * Get a list of overall health graphs available.
      *
      * @param int|string $hostname Hostname can be either the device hostname or id
-     *
-     * @return void
      */
     public function getTypes(int|string $hostname): ?array
     {
