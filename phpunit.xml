@@ -15,6 +15,7 @@
   <testsuites>
     <testsuite name="LibrenmsApi">
       <file>tests/LogTest.php</file>
+      <file>tests/LocationTest.php</file>
     </testsuite>
   </testsuites>
 </phpunit>
