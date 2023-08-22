@@ -3,9 +3,7 @@
 namespace LibrenmsApiClient;
 
 /**
- * Class description.
- *
- * @category
+ * LibreNMS API Location.
  *
  * @author      Daryl Peterson <@gmail.com>
  * @copyright   Copyright (c) 2023, Daryl Peterson
