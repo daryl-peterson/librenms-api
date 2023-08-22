@@ -16,10 +16,12 @@ namespace LibrenmsApiClient;
 class AlertRule
 {
     private ApiClient $api;
+    private Curl $curl;
 
     public function __construct(ApiClient $api)
     {
         $this->api = $api;
+        $this->curl = $api->curl;
     }
 
     /**
@@ -50,8 +52,8 @@ class AlertRule
         $data['interval'] = $interval;
         $data['mute'] = $mute;
 
-        $url = $$this->api->getApiUrl('/rules');
-        $result = $$this->api->post($url, $data);
+        $url = $$this->curl->getApiUrl('/rules');
+        $result = $$this->curl->post($url, $data);
 
         if (!isset($result) || !isset($result['code'])) {
             return false;
@@ -70,14 +72,14 @@ class AlertRule
      */
     public function get(int $id): ?\stdClass
     {
-        $url = $$this->api->getApiUrl("/rules/$id");
-        $result = $$this->api->get($url);
+        $url = $this->curl->getApiUrl("/rules/$id");
+        $result = $this->curl->get($url);
 
-        if (!isset($result)) {
+        if (!isset($result['rules'][0])) {
             return null;
         }
 
-        return $result[$id];
+        return $result['rules'][0];
     }
 
     /**
@@ -110,8 +112,8 @@ class AlertRule
      */
     public function delete(int $id): bool
     {
-        $url = $$this->api->getApiUrl("/rules/$id");
-        $result = $$this->api->delete($url);
+        $url = $$this->curl->getApiUrl("/rules/$id");
+        $result = $$this->curl->delete($url);
 
         if (!isset($result) || !isset($result['code'])) {
             return false;
@@ -130,8 +132,8 @@ class AlertRule
      */
     public function getListing(): ?array
     {
-        $url = $$this->api->getApiUrl('/rules');
-        $result = $$this->api->get($url);
+        $url = $$this->curl->getApiUrl('/rules');
+        $result = $$this->curl->get($url);
         if (!isset($result['rules'])) {
             return null;
         }

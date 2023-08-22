@@ -139,6 +139,31 @@ class Device
     }
 
     /**
+     * Get a list of FDB entries associated with a device.
+     *
+     * @param int|string $hostname Hostname can be either the device hostname or id
+     *
+     * @return array|null Array of stdClass Objects
+     *
+     * @see https://docs.librenms.org/API/Devices/#get_device_fdb
+     */
+    public function getFbd(int|string $hostname): ?array
+    {
+        $url = $this->curl->getApiUrl("/devices/$hostname/fdb");
+        $response = $this->curl->get($url);
+
+        if (!isset($response['ports_fdb'])) {
+            return null;
+        }
+
+        if (!count($response['ports_fdb']) > 0) {
+            return null;
+        }
+
+        return $response['ports_fdb'];
+    }
+
+    /**
      * Delete device.
      *
      * @param int|string $hostname Hostname can be either the device hostname or id
@@ -235,6 +260,8 @@ class Device
      * Get device availability.
      *
      * @param int|string $hostname Hostname can be either the device hostname or id
+     *
+     * @return array|null Array of stdClass Objects { duration, availability_perc }
      *
      * @see https://docs.librenms.org/API/Devices/#availability
      */
@@ -413,6 +440,8 @@ class Device
      * @param int|string $hostname Hostname can be either the device hostname or id
      *
      * @see https://docs.librenms.org/API/Devices/#outages
+     *
+     * @return array|null Array of stdClass Objects
      */
     public function getOutages(int|string $hostname): ?array
     {
@@ -430,6 +459,8 @@ class Device
      * Get device events.
      *
      * @param int|string $hostname Hostname can be either the device hostname or id
+     *
+     * @return array|null Array of stdClass Objects
      */
     public function getEvents(int|string $hostname): ?array
     {

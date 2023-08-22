@@ -16,6 +16,7 @@ class ApiClient
     public const API_PATH = '/api/v0';
 
     public Alert $alert;
+    public AlertRule $alert_rule;
     public Arp $arp;
     public Component $component;
     public Curl $curl;
@@ -47,6 +48,7 @@ class ApiClient
         $this->curl = new Curl($url, $token);
 
         $this->alert = new Alert($this);
+        $this->alert_rule = new AlertRule($this);
         $this->arp = new Arp($this);
         $this->component = new Component($this);
         $this->device = new Device($this);
