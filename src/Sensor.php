@@ -3,7 +3,7 @@
 namespace LibrenmsApiClient;
 
 /**
- * LibreNMS API Sensor.
+ * LibreNMS API Sensors.
  *
  * @category
  *

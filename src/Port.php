@@ -3,7 +3,7 @@
 namespace LibrenmsApiClient;
 
 /**
- * LibreNMS API Ports.
+ * LibreNMS API Port.
  *
  * @author      Daryl Peterson <@gmail.com>
  * @copyright   Copyright (c) 2023, Daryl Peterson
