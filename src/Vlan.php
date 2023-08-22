@@ -8,7 +8,7 @@ namespace LibrenmsApiClient;
  * @category
  *
  * @author      Daryl Peterson <@gmail.com>
- * @copyright   Copyright (c) 2020, Daryl Peterson
+ * @copyright   Copyright (c) 2023, Daryl Peterson
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
  * @since       0.0.1
@@ -17,10 +17,12 @@ namespace LibrenmsApiClient;
 class Vlan
 {
     private ApiClient $api;
+    private Curl $curl;
 
     public function __construct(ApiClient $api)
     {
         $this->api = $api;
+        $this->curl = $api->curl;
     }
 
     /**
@@ -30,8 +32,8 @@ class Vlan
      */
     public function get(int|string $hostname): ?array
     {
-        $url = $this->api->getApiUrl("devices/$hostname/vlans");
-        $result = $this->api->get($url);
+        $url = $this->curl->getApiUrl("devices/$hostname/vlans");
+        $result = $this->curl->get($url);
         if (!isset($result) || !isset($result['vlans'])) {
             return null;
         }
@@ -46,8 +48,8 @@ class Vlan
      */
     public function getListing(): ?array
     {
-        $url = $this->api->getApiUrl('/resources/vlans');
-        $result = $this->api->get($url);
+        $url = $this->curl->getApiUrl('/resources/vlans');
+        $result = $this->curl->get($url);
         if (!isset($result) || !isset($result['vlans'])) {
             return null;
         }

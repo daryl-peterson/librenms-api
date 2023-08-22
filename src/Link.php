@@ -6,7 +6,7 @@ namespace LibrenmsApiClient;
  * Device Links CDP, LLDP ect.
  *
  * @author      Daryl Peterson <@gmail.com>
- * @copyright   Copyright (c) 2020, Daryl Peterson
+ * @copyright   Copyright (c) 2023, Daryl Peterson
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
  * @since       0.0.1
@@ -14,10 +14,12 @@ namespace LibrenmsApiClient;
 class Link
 {
     private ApiClient $api;
+    private Curl $curl;
 
     public function __construct(ApiClient $api)
     {
         $this->api = $api;
+        $this->curl = $api->curl;
     }
 
     /**
@@ -29,8 +31,8 @@ class Link
      */
     public function getListing(): ?array
     {
-        $url = $this->api->getApiUrl('/resources/links');
-        $result = $this->api->get($url);
+        $url = $this->curl->getApiUrl('/resources/links');
+        $result = $this->curl->get($url);
 
         if (!isset($result['links'])) {
             return null;
@@ -48,8 +50,8 @@ class Link
      */
     public function get(int|string $hostname)
     {
-        $url = $this->api->getApiUrl("/devices/$hostname/links");
-        $result = $this->api->get($url);
+        $url = $this->curl->getApiUrl("/devices/$hostname/links");
+        $result = $this->curl->get($url);
 
         if (!isset($result['links'])) {
             return null;

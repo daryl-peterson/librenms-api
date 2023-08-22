@@ -6,7 +6,7 @@ namespace LibrenmsApiClient;
  * LibreNMS API Device.
  *
  * @author      Daryl Peterson <@gmail.com>
- * @copyright   Copyright (c) 2020, Daryl Peterson
+ * @copyright   Copyright (c) 2023, Daryl Peterson
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
  * @since       0.0.2
@@ -14,12 +14,14 @@ namespace LibrenmsApiClient;
 class Device
 {
     private ApiClient $api;
+    private Curl $curl;
     private array $list;
     private string $fileName;
 
     public function __construct(ApiClient $api)
     {
         $this->api = $api;
+        $this->curl = $api->curl;
 
         $dir = sys_get_temp_dir();
         $this->fileName = $dir.'/device-list.txt';
@@ -68,9 +70,10 @@ class Device
                 throw new ApiException('Invalid snmp version [1v,v2c,v3]');
             }
         }
-        $url = $this->api->getApiUrl('/devices');
 
-        $response = $this->api->post($url, $device);
+        $url = $this->curl->getApiUrl('/devices');
+
+        $response = $this->curl->post($url, $device);
         if (!isset($response) || !isset($response['devices'])) {
             return null;
         }
@@ -104,8 +107,8 @@ class Device
             }
         }
 
-        $url = $this->api->getApiUrl('/devices/');
-        $response = $this->api->get($url);
+        $url = $this->curl->getApiUrl('/devices/');
+        $response = $this->curl->get($url);
         if (!$response) {
             return null;
         }
@@ -142,8 +145,8 @@ class Device
      */
     public function delete(int|string $hostname): ?array
     {
-        $url = $url = $this->api->getApiUrl("/devices/$hostname");
-        $response = $this->api->delete($url);
+        $url = $this->curl->getApiUrl("/devices/$hostname");
+        $response = $this->curl->delete($url);
         if (!isset($response) || !isset($response['devices'])) {
             return null;
         }
@@ -166,8 +169,8 @@ class Device
      */
     public function get(int|string $hostname): ?\stdClass
     {
-        $url = $this->api->getApiUrl('/devices/'.$hostname);
-        $result = $this->api->get($url);
+        $url = $this->curl->getApiUrl('/devices/'.$hostname);
+        $result = $this->curl->get($url);
 
         if (!isset($result)) {
             return null;
@@ -201,6 +204,21 @@ class Device
         return $this->get($device->hostname);
     }
 
+    public function hasSNMP(int|string $hostname)
+    {
+        $device = $this->get($hostname);
+        if (!isset($device->snmp_disable)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function hasWireless(int|string $hostname)
+    {
+        return $this->api->wireless->hasWireless($hostname);
+    }
+
     /**
      * Get device availability.
      *
@@ -210,8 +228,8 @@ class Device
      */
     public function getAvailability(int|string $hostname): ?array
     {
-        $url = $this->api->getApiUrl("/devices/$hostname/availability");
-        $result = $this->api->get($url);
+        $url = $this->curl->getApiUrl("/devices/$hostname/availability");
+        $result = $this->curl->get($url);
 
         if (!isset($result) || !isset($result['availability'])) {
             return null;
@@ -229,8 +247,8 @@ class Device
      */
     public function discover(int|string $hostname): bool
     {
-        $url = $this->api->getApiUrl("/devices/$hostname/discover");
-        $result = $this->api->get($url);
+        $url = $this->curl->getApiUrl("/devices/$hostname/discover");
+        $result = $this->curl->get($url);
 
         if (!isset($result['result']) || !isset($result['code'])) {
             return false;
@@ -273,9 +291,9 @@ class Device
             $data['start'] = $start;
         }
 
-        $url = $this->api->getApiUrl("/devices/$hostname/maintenance");
+        $url = $this->curl->getApiUrl("/devices/$hostname/maintenance");
 
-        $result = $this->api->post($url, $data);
+        $result = $this->curl->post($url, $data);
 
         if (!isset($result['result']) || !isset($result['code'])) {
             return false;
@@ -313,8 +331,8 @@ class Device
      */
     public function getIpList(int|string $hostname): ?array
     {
-        $url = $this->api->getApiUrl("/devices/$hostname/ip");
-        $result = $this->api->get($url);
+        $url = $this->curl->getApiUrl("/devices/$hostname/ip");
+        $result = $this->curl->get($url);
 
         if (!isset($result['addresses'])) {
             return null;
@@ -358,10 +376,10 @@ class Device
      *
      * @see https://docs.librenms.org/API/Devices/#outages
      */
-    public function outages(int|string $hostname): ?array
+    public function getOutages(int|string $hostname): ?array
     {
-        $url = $this->api->getApiUrl("/devices/$hostname/outages");
-        $result = $this->api->get($url);
+        $url = $this->curl->getApiUrl("/devices/$hostname/outages");
+        $result = $this->curl->get($url);
 
         if (!isset($result['outages'])) {
             return null;
@@ -391,8 +409,8 @@ class Device
     {
         // /devices/:hostname/rename/:new_hostname
 
-        $url = $this->api->getApiUrl("/devices/$hostname/rename/$new_name");
-        $result = $this->api->patch($url);
+        $url = $this->curl->getApiUrl("/devices/$hostname/rename/$new_name");
+        $result = $this->curl->patch($url);
 
         if (!isset($result['code'])) {
             return false;

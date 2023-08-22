@@ -8,7 +8,7 @@ namespace LibrenmsApiClient;
  * @category
  *
  * @author      Daryl Peterson <@gmail.com>
- * @copyright   Copyright (c) 2020, Daryl Peterson
+ * @copyright   Copyright (c) 2023, Daryl Peterson
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
  * @since       0.0.1
@@ -16,10 +16,12 @@ namespace LibrenmsApiClient;
 class Log
 {
     private ApiClient $api;
+    private Curl $curl;
 
     public function __construct(ApiClient $api)
     {
         $this->api = $api;
+        $this->curl = $api->curl;
     }
 
     /**
@@ -33,8 +35,8 @@ class Log
      */
     public function getAlert(int|string $hostname): ?array
     {
-        $url = $this->api->getApiUrl("/logs/alertlog/$hostname");
-        $result = $this->api->get($url);
+        $url = $this->curl->getApiUrl("/logs/alertlog/$hostname");
+        $result = $this->curl->get($url);
 
         if (!isset($result['logs'])) {
             return null;
@@ -58,8 +60,8 @@ class Log
      */
     public function getAuth(int|string $hostname): ?array
     {
-        $url = $this->api->getApiUrl("/logs/authlog/$hostname");
-        $result = $this->api->get($url);
+        $url = $this->curl->getApiUrl("/logs/authlog/$hostname");
+        $result = $this->curl->get($url);
 
         if (!isset($result['logs'])) {
             return null;
@@ -83,8 +85,8 @@ class Log
      */
     public function getEvent(int|string $hostname): ?array
     {
-        $url = $this->api->getApiUrl("/logs/eventlog/$hostname");
-        $result = $this->api->get($url);
+        $url = $this->curl->getApiUrl("/logs/eventlog/$hostname");
+        $result = $this->curl->get($url);
 
         if (!isset($result['logs'])) {
             return null;
@@ -108,8 +110,8 @@ class Log
      */
     public function sys(int|string $hostname): ?array
     {
-        $url = $this->api->getApiUrl("/logs/syslog/$hostname");
-        $result = $this->api->get($url);
+        $url = $this->curl->getApiUrl("/logs/syslog/$hostname");
+        $result = $this->curl->get($url);
 
         if (!isset($result['logs'])) {
             return null;

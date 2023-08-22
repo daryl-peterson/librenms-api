@@ -8,7 +8,7 @@ namespace LibrenmsApiClient;
  * @category
  *
  * @author      Daryl Peterson <@gmail.com>
- * @copyright   Copyright (c) 2020, Daryl Peterson
+ * @copyright   Copyright (c) 2023, Daryl Peterson
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
  * @since       0.0.1
@@ -16,12 +16,14 @@ namespace LibrenmsApiClient;
 class Sensor
 {
     private ApiClient $api;
+    private Curl $curl;
     private string $fileName;
     private array $list;
 
     public function __construct(ApiClient $api)
     {
         $this->api = $api;
+        $this->curl = $api->curl;
 
         $dir = sys_get_temp_dir();
         $this->fileName = $dir.'/sensor-list.txt';
@@ -56,8 +58,8 @@ class Sensor
             }
         }
 
-        $url = $this->api->getApiUrl('/resources/sensors');
-        $result = $this->api->get($url);
+        $url = $this->curl->getApiUrl('/resources/sensors');
+        $result = $this->curl->get($url);
         if (!isset($result['sensors'])) {
             return null;
         }

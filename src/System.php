@@ -6,7 +6,7 @@ namespace LibrenmsApiClient;
  * LibreNMS API Client System.
  *
  * @author      Daryl Peterson <@gmail.com>
- * @copyright   Copyright (c) 2020, Daryl Peterson
+ * @copyright   Copyright (c) 2023, Daryl Peterson
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
  * @since       0.0.1
@@ -14,10 +14,12 @@ namespace LibrenmsApiClient;
 class System
 {
     private ApiClient $api;
+    private Curl $curl;
 
     public function __construct(ApiClient $api)
     {
         $this->api = $api;
+        $this->curl = $api->curl;
     }
 
     /**
@@ -27,8 +29,8 @@ class System
      */
     public function get(): ?array
     {
-        $url = $this->api->getApiUrl('/system');
-        $result = $this->api->get($url);
+        $url = $this->curl->getApiUrl('/system');
+        $result = $this->curl->get($url);
 
         if (!isset($result) || !isset($result['system'])) {
             return null;
@@ -42,8 +44,8 @@ class System
      */
     public function endPoints(): ?array
     {
-        $url = $this->api->getApiUrl('');
-        $result = $this->api->get($url);
+        $url = $this->curl->getApiUrl('');
+        $result = $this->curl->get($url);
         if (!isset($result['code'])) {
             return null;
         }
