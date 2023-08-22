@@ -5,8 +5,6 @@ namespace LibrenmsApiClient;
 /**
  * LibreNMS API Logs.
  *
- * @category
- *
  * @author      Daryl Peterson <@gmail.com>
  * @copyright   Copyright (c) 2023, Daryl Peterson
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
