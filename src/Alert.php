@@ -21,11 +21,12 @@ class Alert
 
     public AlertRule $rule;
     private ApiClient $api;
+    private Curl $curl;
 
     public function __construct(ApiClient $api)
     {
         $this->api = $api;
-        $this->rule = new AlertRule($this->api);
+        $this->curl = $api->curl;
     }
 
     /**
@@ -35,8 +36,8 @@ class Alert
      */
     public function get(int $id): ?\stdClass
     {
-        $url = $this->api->getApiUrl("/alerts/$id");
-        $result = $this->api->get($url);
+        $url = $this->curl->getApiUrl("/alerts/$id");
+        $result = $this->curl->get($url);
 
         if (!isset($result) || !isset($result['alerts'])) {
             return null;
@@ -61,8 +62,8 @@ class Alert
      */
     public function acknowledge(int $id): bool
     {
-        $url = $this->api->getApiUrl("/alerts/$id");
-        $result = $this->api->put($url);
+        $url = $this->curl->getApiUrl("/alerts/$id");
+        $result = $this->curl->put($url);
 
         if (!isset($result) || !isset($result['code'])) {
             return false;
@@ -82,8 +83,8 @@ class Alert
      */
     public function unmute(int $id): bool
     {
-        $url = $this->api->getApiUrl("/alerts/unmute/$id");
-        $result = $this->api->put($url);
+        $url = $this->curl->getApiUrl("/alerts/unmute/$id");
+        $result = $this->curl->put($url);
 
         if (!isset($result) || !isset($result['code'])) {
             return false;
@@ -142,8 +143,8 @@ class Alert
         }
         $suffix = http_build_query($params);
 
-        $url = $this->api->getApiUrl('/alerts?'.$suffix);
-        $result = $this->api->get($url);
+        $url = $this->curl->getApiUrl('/alerts?'.$suffix);
+        $result = $this->curl->get($url);
 
         if (!isset($result['alerts'])) {
             return null;
