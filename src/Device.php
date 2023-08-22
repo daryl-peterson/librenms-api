@@ -206,7 +206,12 @@ class Device
         return $this->get($device->hostname);
     }
 
-    public function hasSNMP(int|string $hostname)
+    /**
+     * Check if the device supports SNMP.
+     *
+     * @param int|string $hostname Hostname can be either the device hostname or id
+     */
+    public function hasSNMP(int|string $hostname): bool
     {
         $device = $this->get($hostname);
         if (!isset($device->snmp_disable)) {
@@ -216,7 +221,12 @@ class Device
         return true;
     }
 
-    public function hasWireless(int|string $hostname)
+    /**
+     * Check if the device has wireless.
+     *
+     * @param int|string $hostname Hostname can be either the device hostname or id
+     */
+    public function hasWireless(int|string $hostname): bool
     {
         return $this->api->wireless->hasWireless($hostname);
     }
