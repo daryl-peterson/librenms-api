@@ -17,6 +17,7 @@ class ApiClient
 
     public Alert $alert;
     public Arp $arp;
+    public Component $component;
     public Curl $curl;
     public Device $device;
     public Graph $graph;
@@ -42,9 +43,12 @@ class ApiClient
     {
         $this->url = $url;
         $this->token = $token;
+
         $this->curl = new Curl($url, $token);
+
         $this->alert = new Alert($this);
         $this->arp = new Arp($this);
+        $this->component = new Component($this);
         $this->device = new Device($this);
         $this->graph = new Graph($this);
         $this->health = new Health($this);
