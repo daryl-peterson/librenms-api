@@ -112,7 +112,7 @@ class Curl
         return $this->response($curl, $url);
     }
 
-    public function put(string $url, array $data = null): ?array
+    public function put(string $url, array|object $data = null): ?array
     {
         $curl = $this->init($url);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PUT');

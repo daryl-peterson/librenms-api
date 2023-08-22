@@ -10,8 +10,6 @@ namespace LibrenmsApiClient;
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
  * @since       0.0.1
- *
- * @todo Finish class
  */
 class Component
 {
@@ -24,21 +22,62 @@ class Component
         $this->curl = $api->curl;
     }
 
-    public function add(int|string $hostname, string $type)
+    /**
+     * Create a new component of a type on a particular device.
+     *
+     * @param int|string $hostname Hostname can be either the device hostname or id
+     *
+     * @see https://docs.librenms.org/API/Devices/#add_components
+     */
+    public function add(int|string $hostname, string $type): ?\stdClass
     {
-        // /devices/:hostname/components/:type
-        // curl -X POST -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/devices/localhost/components/APITEST
         $url = $this->curl->getApiUrl("/devices/$hostname/components/$type");
         $result = $this->curl->post($url);
 
         if (!isset($result['components'])) {
             return null;
         }
-        if (!count($result['components']) > 0) {
-            return null;
-        }
 
         return $result['components'];
+    }
+
+    /**
+     * Edit an existing component on a particular device.
+     *
+     * @param int|string $hostname Hostname can be either the device hostname or id
+     *
+     * @see https://docs.librenms.org/API/Devices/#edit_components
+     */
+    public function edit(int|string $hostname, int $component_id, array $data): bool
+    {
+        $obj = new \stdClass();
+        $obj->$component_id = (object) $data;
+
+        $url = $this->curl->getApiUrl("/devices/$hostname/components");
+        $result = $this->curl->put($url, $obj);
+        if (!isset($result['code'])) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Delete an existing component on a particular device.
+     *
+     * @param int|string $hostname Hostname can be either the device hostname or id
+     *
+     * @see https://docs.librenms.org/API/Devices/#delete_components
+     */
+    public function delete(int|string $hostname, int $component_id): bool
+    {
+        $url = $this->curl->getApiUrl("/devices/$hostname/components/$component_id");
+        $result = $this->curl->delete($url);
+        if (!isset($result['code'])) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -48,15 +87,12 @@ class Component
      *
      * @see https://docs.librenms.org/API/Devices/#get_components
      */
-    public function getListing(int|string $hostname): ?array
+    public function getListing(int|string $hostname): ?\stdClass
     {
         $url = $this->curl->getApiUrl("/devices/$hostname/components");
         $result = $this->curl->get($url);
 
         if (!isset($result['components'])) {
-            return null;
-        }
-        if (!count($result['components']) > 0) {
             return null;
         }
 
