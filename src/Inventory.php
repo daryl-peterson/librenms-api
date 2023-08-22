@@ -8,7 +8,7 @@ namespace LibrenmsApiClient;
  * @category
  *
  * @author      Daryl Peterson <@gmail.com>
- * @copyright   Copyright (c) 2020, Daryl Peterson
+ * @copyright   Copyright (c) 2023, Daryl Peterson
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
  * @since       0.0.1
@@ -16,10 +16,12 @@ namespace LibrenmsApiClient;
 class Inventory
 {
     private ApiClient $api;
+    private Curl $curl;
 
     public function __construct(ApiClient $api)
     {
         $this->api = $api;
+        $this->curl = $api->curl;
     }
 
     /**
@@ -31,8 +33,8 @@ class Inventory
      */
     public function getListing(int|string $hostname): ?array
     {
-        $url = $this->api->getApiUrl("/inventory/$hostname/all");
-        $result = $this->api->get($url);
+        $url = $this->curl->getApiUrl("/inventory/$hostname/all");
+        $result = $this->curl->get($url);
 
         if (!isset($result) || !isset($result['inventory'])) {
             return null;
@@ -50,8 +52,8 @@ class Inventory
      */
     public function get(int|string $hostname)
     {
-        $url = $this->api->getApiUrl("/inventory/$hostname");
-        $result = $this->api->get($url);
+        $url = $this->curl->getApiUrl("/inventory/$hostname");
+        $result = $this->curl->get($url);
 
         if (!isset($result) || !isset($result['inventory'])) {
             return null;
