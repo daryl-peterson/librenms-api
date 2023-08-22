@@ -40,7 +40,7 @@ class ApiClient
      */
     public function __construct(string $url, string $token)
     {
-        $this->url = rtrim($url, '/').self::API_PATH;
+        $this->url = $url;
         $this->token = $token;
         $this->curl = new Curl($url, $token);
         $this->alert = new Alert($this);
