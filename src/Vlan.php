@@ -13,6 +13,8 @@ namespace LibrenmsApiClient;
  *
  * @since       0.0.1
  * @see https://docs.librenms.org/API/Switching/
+ *
+ * @todo unit test
  */
 class Vlan
 {
