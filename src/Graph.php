@@ -8,7 +8,7 @@ use stdClass;
  * LibreNMS API graphs.
  *
  * @author      Daryl Peterson <@gmail.com>
- * @copyright   Copyright (c) 2020, Daryl Peterson
+ * @copyright   Copyright (c) 2023, Daryl Peterson
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
  * @since       0.0.1
@@ -16,10 +16,12 @@ use stdClass;
 class Graph
 {
     private ApiClient $api;
+    private Curl $curl;
 
     public function __construct(ApiClient $api)
     {
         $this->api = $api;
+        $this->curl = $api->curl;
     }
 
     /**
@@ -33,8 +35,8 @@ class Graph
      */
     public function getTypes(int|string $hostname): ?array
     {
-        $url = $this->api->getApiUrl("/devices/$hostname/graphs");
-        $response = $this->api->get($url);
+        $url = $this->curl->getApiUrl("/devices/$hostname/graphs");
+        $response = $this->curl->get($url);
 
         if (!isset($response)) {
             return null;
@@ -63,7 +65,7 @@ class Graph
         string $to = null,
         string $output = null
     ): ?array {
-        $url = $this->api->getApiUrl("/devices/$hostname/$type");
+        $url = $this->curl->getApiUrl("/devices/$hostname/$type");
         $params = [];
         if (isset($from)) {
             $params['from'] = $from;
@@ -77,7 +79,7 @@ class Graph
 
         $suffix = http_build_query($params);
         $url .= "?$suffix";
-        $response = $this->api->get($url);
+        $response = $this->curl->get($url);
 
         if (!isset($response['image'])) {
             return null;
@@ -118,8 +120,8 @@ class Graph
 
         foreach ($ports as $port) {
             try {
-                $url = $this->api->getApiUrl("/devices/$hostname/ports/".urlencode($port->ifName)."/$type");
-                $response = $this->api->get($url);
+                $url = $this->curl->getApiUrl("/devices/$hostname/ports/".urlencode($port->ifName)."/$type");
+                $response = $this->curl->get($url);
 
                 if (!is_array($response)) {
                     continue;

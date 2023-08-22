@@ -8,7 +8,7 @@ namespace LibrenmsApiClient;
  * @category
  *
  * @author      Daryl Peterson <@gmail.com>
- * @copyright   Copyright (c) 2020, Daryl Peterson
+ * @copyright   Copyright (c) 2023, Daryl Peterson
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
  * @since       0.0.1
@@ -16,10 +16,12 @@ namespace LibrenmsApiClient;
 class Location
 {
     private ApiClient $api;
+    private Curl $curl;
 
     public function __construct(ApiClient $api)
     {
         $this->api = $api;
+        $this->curl = $api->curl;
     }
 
     /**
@@ -35,8 +37,8 @@ class Location
             'lng' => $lng,
             'fixed_coordinates' => $fixed,
         ];
-        $url = $this->api->getApiUrl('/locations');
-        $result = $this->api->post($url, $data);
+        $url = $this->curl->getApiUrl('/locations');
+        $result = $this->curl->post($url, $data);
 
         if (!isset($result) || !isset($result['message'])) {
             return null;
@@ -54,9 +56,9 @@ class Location
     public function get(string $location)
     {
         $location = rawurlencode($location);
-        $url = $this->api->getApiUrl("/location/$location");
+        $url = $this->curl->getApiUrl("/location/$location");
 
-        $result = $this->api->get($url);
+        $result = $this->curl->get($url);
         if (!isset($result) || !isset($result['get_location'])) {
             return null;
         }
@@ -71,8 +73,8 @@ class Location
      */
     public function getListing(): ?array
     {
-        $url = $this->api->getApiUrl('/resources/locations');
-        $result = $this->api->get($url);
+        $url = $this->curl->getApiUrl('/resources/locations');
+        $result = $this->curl->get($url);
         if (!isset($result) || !isset($result['locations'])) {
             return null;
         }
@@ -88,9 +90,9 @@ class Location
     public function delete(string $location): ?array
     {
         $location = rawurlencode($location);
-        $url = $this->api->getApiUrl("/locations/$location");
+        $url = $this->curl->getApiUrl("/locations/$location");
 
-        $result = $this->api->delete($url);
+        $result = $this->curl->delete($url);
 
         if (!isset($result) || !isset($result['message'])) {
             return null;
@@ -108,8 +110,8 @@ class Location
     public function edit(string $location, array $data): ?array
     {
         $location = rawurlencode($location);
-        $url = $this->api->getApiUrl("/locations/$location");
-        $result = $this->api->patch($url, $data);
+        $url = $this->curl->getApiUrl("/locations/$location");
+        $result = $this->curl->patch($url, $data);
 
         return $result;
     }

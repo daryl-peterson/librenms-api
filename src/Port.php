@@ -6,7 +6,7 @@ namespace LibrenmsApiClient;
  * LibreNMS API Ports.
  *
  * @author      Daryl Peterson <@gmail.com>
- * @copyright   Copyright (c) 2020, Daryl Peterson
+ * @copyright   Copyright (c) 2023, Daryl Peterson
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
  * @since       0.0.1
@@ -14,10 +14,12 @@ namespace LibrenmsApiClient;
 class Port
 {
     private ApiClient $api;
+    private Curl $curl;
 
     public function __construct(ApiClient $api)
     {
         $this->api = $api;
+        $this->curl = $api->curl;
     }
 
     /**
@@ -27,8 +29,8 @@ class Port
      */
     public function get(int $id): ?\stdClass
     {
-        $url = $this->api->getApiUrl("/ports/$id");
-        $result = $this->api->get($url);
+        $url = $this->curl->getApiUrl("/ports/$id");
+        $result = $this->curl->get($url);
 
         if (!isset($result['port'][0])) {
             return null;
@@ -52,8 +54,8 @@ class Port
         }
 
         $columns = urlencode($columns);
-        $url = $this->api->getApiUrl('/ports?columns='.$columns);
-        $result = $this->api->get($url);
+        $url = $this->curl->getApiUrl('/ports?columns='.$columns);
+        $result = $this->curl->get($url);
 
         if (!isset($result['ports'])) {
             return null;
@@ -71,8 +73,8 @@ class Port
      */
     public function setNotes(int|string $hostname, int $port_id, string $note)
     {
-        $url = $this->api->getApiUrl("/devices/$hostname/port/$port_id");
-        $result = $this->api->patch($url, ['notes' => $note]);
+        $url = $this->curl->getApiUrl("/devices/$hostname/port/$port_id");
+        $result = $this->curl->patch($url, ['notes' => $note]);
         print_r($result);
 
         return $result;
@@ -90,8 +92,8 @@ class Port
     public function getByDevice(int|string $hostname): ?array
     {
         $columns = urlencode('device_id,port_id,ifName,ifDescr,ifAlias,ifMtu,ifType,ifSpeed,ifOperStatus,ifAdminStatus,ifPhysAddress,ifInErrors,ifOutErrors');
-        $url = $this->api->getApiUrl("/devices/$hostname/ports?columns=".$columns);
-        $result = $this->api->get($url);
+        $url = $this->curl->getApiUrl("/devices/$hostname/ports?columns=".$columns);
+        $result = $this->curl->get($url);
 
         if (!isset($result['ports'])) {
             return null;
@@ -113,8 +115,8 @@ class Port
     {
         $search = urlencode($search);
         // curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/ports/search/lo
-        $url = $this->api->getApiUrl("/ports/search/$search");
-        $result = $this->api->get($url);
+        $url = $this->curl->getApiUrl("/ports/search/$search");
+        $result = $this->curl->get($url);
 
         return $result;
     }
