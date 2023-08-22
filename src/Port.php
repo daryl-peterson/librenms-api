@@ -2,6 +2,8 @@
 
 namespace LibrenmsApiClient;
 
+use stdClass;
+
 /**
  * LibreNMS API Port.
  *
@@ -15,11 +17,15 @@ class Port
 {
     private ApiClient $api;
     private Curl $curl;
+    private string $columns;
 
     public function __construct(ApiClient $api)
     {
         $this->api = $api;
         $this->curl = $api->curl;
+        $this->columns = 'device_id,port_id,disabled,deleted,ignore,ifName,';
+        $this->columns .= 'ifDescr,ifAlias,ifMtu,ifType,ifVlan,ifSpeed,ifOperStatus,';
+        $this->columns .= 'ifAdminStatus,ifPhysAddress,ifInErrors,ifOutErrors,poll_time';
     }
 
     /**
@@ -40,7 +46,9 @@ class Port
     }
 
     /**
-     * Get port listing.
+     * Get info for all ports on all devices.
+     *
+     * - Strongly recommend that you use the columns parameter to avoid pulling too much data
      *
      * @return array|null Array of stdClass Objects
      *
@@ -48,9 +56,8 @@ class Port
      */
     public function getListing(string $columns = null): ?array
     {
-        $default = 'device_id,port_id,deleted,ifName,ifDescr,ifAlias,ifMtu,ifType,ifSpeed,ifOperStatus,ifAdminStatus,ifPhysAddress,ifInErrors,ifOutErrors';
         if (!isset($columns)) {
-            $columns = $default;
+            $columns = $this->columns;
         }
 
         $columns = urlencode($columns);
@@ -89,9 +96,13 @@ class Port
      *
      * @see https://docs.librenms.org/API/Devices/#get_port_graphs
      */
-    public function getByDevice(int|string $hostname): ?array
+    public function getByDevice(int|string $hostname, string $columns = null): ?array
     {
-        $columns = urlencode('device_id,port_id,ifName,ifDescr,ifAlias,ifMtu,ifType,ifSpeed,ifOperStatus,ifAdminStatus,ifPhysAddress,ifInErrors,ifOutErrors');
+        if (!isset($columns)) {
+            $columns = $this->columns;
+        }
+
+        $columns = urlencode($columns);
         $url = $this->curl->getApiUrl("/devices/$hostname/ports?columns=".$columns);
         $result = $this->curl->get($url);
 
@@ -107,17 +118,122 @@ class Port
     }
 
     /**
-     * Undocumented function.
+     * Search for ports matching the search mac.
+     *
+     * - Search a mac address in fdb and print the ports ordered by the mac count of the associated port
+     *
+     * @return array|\stdClass|null Array of stdClass Objects
+     *
+     * @see https://docs.librenms.org/API/Ports/#ports_with_associated_mac
+     */
+    public function getByMac(string $search, string $filter = null): null|array|\stdClass
+    {
+        $url = $this->curl->getApiUrl("/ports/mac/$search");
+        if (isset($filter)) {
+            $url .= '?filter='.$filter;
+        }
+        $result = $this->curl->get($url);
+        if (!isset($result['ports'])) {
+            return null;
+        }
+
+        return $result['ports'];
+    }
+
+    /**
+     * Get information about a particular port for a device.
+     *
+     * @see https://docs.librenms.org/API/Devices/#get_port_stats_by_port_hostname
+     */
+    public function getStats(int|string $hostname, string $ifname): ?\stdClass
+    {
+        $ifname = urlencode($ifname);
+        $url = $this->curl->getApiUrl("/devices/$hostname/ports/$ifname");
+        $result = $this->curl->get($url);
+
+        if (!isset($result['port'])) {
+            return null;
+        }
+
+        return $result['port'];
+    }
+
+    /**
+     * Get all IP info (v4 and v6) for a given port id.
+     *
+     * @return array|null Array of stdClass Objects
+     *
+     * @see https://docs.librenms.org/API/Ports/#get_port_ip_info
+     */
+    public function getIpInfo(int $port_id): ?array
+    {
+        $url = $this->curl->getApiUrl("/ports/$port_id/ip");
+        $result = $this->curl->get($url);
+
+        if (!isset($result['addresses'])) {
+            return null;
+        }
+        if (!count($result['addresses']) > 0) {
+            return null;
+        }
+
+        return $result['addresses'];
+    }
+
+    /**
+     * Search for ports matching the query.
+     *
+     * - Search string to search in fields: ifAlias, ifDescr, and ifName
+     *
+     * @return array|null Array of stdClass Objects
      *
      * @see https://docs.librenms.org/API/Ports/#search_ports
      */
-    public function search(string $search)
+    public function search(string $search, string $columns = null): ?array
     {
         $search = urlencode($search);
-        // curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/ports/search/lo
-        $url = $this->curl->getApiUrl("/ports/search/$search");
+        if (!isset($columns)) {
+            $columns = $this->columns;
+        }
+        $columns = urlencode($columns);
+
+        $url = $this->curl->getApiUrl("/ports/search/$search?columns=$columns");
         $result = $this->curl->get($url);
 
         return $result;
+    }
+
+    /**
+     * Specific search for ports matching the query.
+     *
+     * - Search: string to search in fields
+     * - Fields: comma separated list of field(s) to search
+     *
+     * @return array|null Array of stdClass Objects
+     *
+     * @see https://docs.librenms.org/API/Ports/#search_ports-in-specific-fields
+     */
+    public function searchBy(string $search, string $fields = null, string $columns = null): ?array
+    {
+        $search = urlencode($search);
+        if (!isset($fields)) {
+            $fields = 'ifName,ifDescr,ifAlias';
+        }
+        $fields = urlencode($fields);
+        if (!isset($columns)) {
+            $columns = $this->columns;
+        }
+        $columns = urlencode($columns);
+        $url = $this->curl->getApiUrl("/ports/search/$fields/$search?columns=$columns");
+        $result = $this->curl->get($url);
+
+        if (!isset($result['ports'])) {
+            return null;
+        }
+        if (!count($result['ports']) > 0) {
+            return null;
+        }
+
+        return $result['ports'];
     }
 }
