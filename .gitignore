@@ -1,5 +1,6 @@
 /.vscode/
 /.trash/
+/.dist/
 /.phpunit.cache/
 /logs/
 /vendor/
