@@ -20,6 +20,7 @@ class Curl
 
     public function __construct(string $url, string $token)
     {
+        $url = str_replace(self::API_PATH, '', $url);
         $this->url = rtrim($url, '/').self::API_PATH;
         $this->token = $token;
     }
