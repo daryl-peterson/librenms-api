@@ -3,7 +3,7 @@
 namespace LibrenmsApiClient;
 
 /**
- * Class description.
+ * LibreNMS API Exception.
  *
  * @category
  *
@@ -11,7 +11,7 @@ namespace LibrenmsApiClient;
  * @copyright   Copyright (c) 2023, Daryl Peterson
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
- * @since       0.0.1
+ * @since       0.0.2
  */
 class ApiException extends \Exception
 {
