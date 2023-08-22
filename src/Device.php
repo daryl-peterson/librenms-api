@@ -2,6 +2,8 @@
 
 namespace LibrenmsApiClient;
 
+use stdClass;
+
 /**
  * LibreNMS API Device.
  *
@@ -321,6 +323,32 @@ class Device
     }
 
     /**
+     * Get information about a particular port for a device.
+     *
+     * @param int|string $hostname Hostname can be either the device hostname or id
+     *
+     * @see https://docs.librenms.org/API/Devices/#get_port_stats_by_port_hostname
+     */
+    public function getPortStats(int|string $hostname, string $ifname): ?\stdClass
+    {
+        return $this->api->port->getStats($hostname, $ifname);
+    }
+
+    /**
+     * Search for ports matching the search mac.
+     *
+     * - Search a mac address in fdb and print the ports ordered by the mac count of the associated port
+     *
+     * @return array|\stdClass|null Array of stdClass Objects
+     *
+     * @see https://docs.librenms.org/API/Ports/#ports_with_associated_mac
+     */
+    public function getPortsByMac(string $search, string $filter = null)
+    {
+        return $this->api->port->getByMac($search, $filter);
+    }
+
+    /**
      * Get device ip addresses.
      *
      * @param int|string $hostname Hostname can be either the device hostname or id
@@ -407,8 +435,6 @@ class Device
      */
     public function rename(int|string $hostname, string $new_name): bool
     {
-        // /devices/:hostname/rename/:new_hostname
-
         $url = $this->curl->getApiUrl("/devices/$hostname/rename/$new_name");
         $result = $this->curl->patch($url);
 
