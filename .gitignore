@@ -2,6 +2,6 @@
 /.trash/
 /.dist/
 /.phpunit.cache/
-/tests/.globals.php
+/tests/config.php
 /logs/
 /vendor/

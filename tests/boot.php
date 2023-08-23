@@ -13,7 +13,12 @@ declare(strict_types=1);
 
 require_once dirname(dirname(__FILE__)).'/vendor/autoload.php';
 
-global $url, $token;
+$dir = dirname(__FILE__);
+if (file_exists($dir.'/config.php')) {
+    require_once $dir.'/config.php';
+} else {
+    global $url, $token;
 
-$url = readline('Enter URL : ');
-$token = readline('Enter Token : ');
+    $url = readline('Enter URL : ');
+    $token = readline('Enter Token : ');
+}
