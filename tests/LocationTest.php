@@ -19,20 +19,10 @@ class LocationTest extends TestCase
 {
     private ApiClient $api;
 
-    public function testAdd()
-    {
-    }
-
-    public function testGet()
-    {
-    }
-
     public function testListing()
     {
-    }
-
-    public function testDelete()
-    {
+        $result = $this->api->location->getListing();
+        $this->assertIsArray($result);
     }
 
     public function setUp(): void

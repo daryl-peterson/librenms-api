@@ -429,9 +429,14 @@ class Device
      *
      * @see https://docs.librenms.org/API/Logs/#list_alertlog
      */
-    public function getAlerts(int|string $hostname): ?array
-    {
-        return $this->api->log->getAlert($hostname);
+    public function getAlerts(
+        int|string $hostname = null,
+        int $limit = null,
+        int $start = null,
+        string $from = null,
+        string $to = null
+    ): ?array {
+        return $this->api->log->getAlerts($hostname, $limit, $start, $from, $to);
     }
 
     /**
@@ -462,9 +467,14 @@ class Device
      *
      * @return array|null Array of stdClass Objects
      */
-    public function getEvents(int|string $hostname): ?array
-    {
-        return $this->api->log->getEvent($hostname);
+    public function getEvents(
+        int|string $hostname = null,
+        int $limit = null,
+        int $start = null,
+        string $from = null,
+        string $to = null
+    ): ?array {
+        return $this->api->log->getEvents($hostname, $limit, $start, $from, $to);
     }
 
     /**

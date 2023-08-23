@@ -21,6 +21,7 @@ class ApiClient
     public Component $component;
     public Curl $curl;
     public Device $device;
+    public DeviceGroup $device_group;
     public Graph $graph;
     public Health $health;
     public Inventory $inventory;
@@ -52,6 +53,7 @@ class ApiClient
         $this->arp = new Arp($this);
         $this->component = new Component($this);
         $this->device = new Device($this);
+        $this->device_group = new DeviceGroup($this);
         $this->graph = new Graph($this);
         $this->health = new Health($this);
         $this->inventory = new Inventory($this);

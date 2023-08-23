@@ -22,35 +22,34 @@ class LogTest extends TestCase
     private ApiClient $api;
     private Log $log;
 
-    public function testAlert()
+    public function testGetAlerts()
     {
-        $result = $this->api->log->alert(0);
+        $log = $this->api->log;
+        $result = $log->getAlerts(0);
         $this->assertNull($result);
 
         $alerts = $this->api->alert->all();
-
         if (!isset($alerts)) {
             return;
         }
 
         $alert = array_pop($alerts);
-        $result = $this->api->log->alert($alert->device_id);
+        $result = $log->getAlerts($alert->device_id);
         $this->assertIsArray($result);
     }
 
     public function testEvent()
     {
         $log = $this->api->log;
-        $result = $log->event(0);
+        $result = $log->getEvents(0);
         $this->assertNull($result);
 
-        $listing = $this->api->device->listing();
-        print_r($listing);
+        $listing = $log->getEvents();
         if (!isset($listing)) {
             return;
         }
-        $device = array_pop($listing);
-        $result = $log->event($device->device_id);
+        $device = array_pop($listing['logs']);
+        $result = $log->getEvents($device->device_id, 1);
         $this->assertIsArray($result);
     }
 

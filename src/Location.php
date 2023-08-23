@@ -19,7 +19,7 @@ class Location
     public function __construct(ApiClient $api)
     {
         $this->api = $api;
-        $this->curl = $api->curl;
+        $this->curl = $this->api->curl;
     }
 
     /**
@@ -51,17 +51,17 @@ class Location
      *
      * @see https://docs.librenms.org/API/Locations/#get_location
      */
-    public function get(string $location)
+    public function get(string $location): ?\stdClass
     {
         $location = rawurlencode($location);
         $url = $this->curl->getApiUrl("/location/$location");
 
         $result = $this->curl->get($url);
-        if (!isset($result) || !isset($result['get_location'])) {
+        if (!isset($result['get_location'])) {
             return null;
         }
 
-        return (array) $result['get_location'];
+        return $result['get_location'];
     }
 
     /**

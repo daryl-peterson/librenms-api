@@ -3,7 +3,7 @@
     bootstrap="tests/boot.php"
     xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.3/phpunit.xsd"
     cacheDirectory=".phpunit.cache"
-    failOnWarning="true"
+    displayDetailsOnTestsThatTriggerWarnings="true"
     colors="true"
 >
   <logging>

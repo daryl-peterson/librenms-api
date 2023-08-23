@@ -31,91 +31,91 @@ class Log
      *
      * @see https://docs.librenms.org/API/Logs/#list_alertlog
      */
-    public function getAlert(int|string $hostname): ?array
-    {
-        $url = $this->curl->getApiUrl("/logs/alertlog/$hostname");
-        $result = $this->curl->get($url);
+    public function getAlerts(
+        int|string $hostname = null,
+        int $limit = null,
+        int $start = null,
+        string $from = null,
+        string $to = null
+    ): ?array {
+        $url = $this->curl->getApiUrl('/logs/alertlog');
 
-        if (!isset($result['logs'])) {
-            return null;
-        }
-
-        if (0 === count($result['logs'])) {
-            return null;
-        }
-
-        return $result['logs'];
+        return $this->doRequest($url, $hostname, $limit, $start, $from, $to);
     }
 
     /**
      * Auth logs.
      *
-     * @param int|string $hostname Hostname can be either the device hostname or id
+     * @param int|string|null $hostname Hostname can be either the device hostname or id
+     * @param int|null        $limit    The limit of results to be returned
+     * @param int|null        $start    The page number to request
+     * @param string|null     $from     The date and time or the event id to search from
+     * @param string|null     $to       The data and time or the event id to search to
      *
      * @return array|null Array of stdClass Objects
      *
      * @see https://docs.librenms.org/API/Logs/#list_authlog
      */
-    public function getAuth(int|string $hostname): ?array
-    {
-        $url = $this->curl->getApiUrl("/logs/authlog/$hostname");
-        $result = $this->curl->get($url);
+    public function getAuths(
+        int|string $hostname = null,
+        int $limit = null,
+        int $start = null,
+        string $from = null,
+        string $to = null
+    ): ?array {
+        $url = $this->curl->getApiUrl('/logs/authlog');
 
-        if (!isset($result['logs'])) {
-            return null;
-        }
-
-        if (0 === count($result['logs'])) {
-            return null;
-        }
-
-        return $result['logs'];
+        return $this->doRequest($url, $hostname, $limit, $start, $from, $to);
     }
 
     /**
      * Event logs.
      *
-     * @param int|string $hostname Hostname can be either the device hostname or id
+     * @param int|string|null $hostname Hostname can be either the device hostname or id
+     * @param int|null        $limit    The limit of results to be returned
+     * @param int|null        $start    The page number to request
+     * @param string|null     $from     The date and time or the event id to search from
+     * @param string|null     $to       The data and time or the event id to search to
      *
      * @return array|null Array of stdClass Objects
      *
      * @see https://docs.librenms.org/API/Logs/#list_eventlog
      */
-    public function getEvent(int|string $hostname): ?array
-    {
-        $url = $this->curl->getApiUrl("/logs/eventlog/$hostname");
-        $result = $this->curl->get($url);
+    public function getEvents(
+        int|string $hostname = null,
+        int $limit = null,
+        int $start = null,
+        string $from = null,
+        string $to = null
+    ): ?array {
+        $url = $this->curl->getApiUrl('/logs/eventlog');
 
-        if (!isset($result['logs'])) {
-            return null;
-        }
-
-        if (0 === count($result['logs'])) {
-            return null;
-        }
-
-        return $result['logs'];
+        return $this->doRequest($url, $hostname, $limit, $start, $from, $to);
     }
 
     /**
      * Sys logs.
      *
-     * @param int|string $hostname Hostname can be either the device hostname or id
+     * @param int|string|null $hostname Hostname can be either the device hostname or id
+     * @param int|null        $limit    The limit of results to be returned
+     * @param int|null        $start    The page number to request
+     * @param string|null     $from     The date and time or the event id to search from
+     * @param string|null     $to       The data and time or the event id to search to
      *
      * @return array|null Array of stdClass Objects
      *
      * @see https://docs.librenms.org/API/Logs/#list_syslog
      */
-    public function sys(int|string $hostname): ?array
-    {
-        $url = $this->curl->getApiUrl("/logs/syslog/$hostname");
-        $result = $this->curl->get($url);
+    public function sys(
+        int|string $hostname = null,
+        int $limit = null,
+        int $start = null,
+        string $from = null,
+        string $to = null
+    ): ?array {
+        $url = $this->curl->getApiUrl('/logs/syslog');
 
-        if (!isset($result['logs'])) {
-            return null;
-        }
-
-        return $result['logs'];
+        return $this->doRequest($url, $hostname, $limit, $start, $from, $to);
     }
 
     /**
@@ -127,5 +127,55 @@ class Log
      */
     public function syslogsink()
     {
+    }
+
+    private function doRequest(
+        string $url,
+        int|string $hostname = null,
+        int $limit = null,
+        int $start = null,
+        string $from = null,
+        string $to = null
+    ): ?array {
+        $params = [];
+        $suffix = '';
+        if (isset($hostname)) {
+            $url .= "/$hostname";
+        }
+
+        if (isset($limit)) {
+            $params['limit'] = $limit;
+        }
+
+        if (isset($start)) {
+            $params['start'] = $start;
+        }
+
+        if (isset($from)) {
+            $params['from'] = $start;
+        }
+
+        if (isset($to)) {
+            $params['to'] = $to;
+        }
+
+        if (count($params) > 0) {
+            $suffix = '?'.http_build_query($params);
+        }
+        $url .= $suffix;
+
+        $result = $this->curl->get($url);
+
+        if (!isset($result['logs']) || !isset($result['count'])) {
+            return null;
+        }
+        if (!$result['count'] > 0) {
+            return null;
+        }
+        unset($result['headers']);
+        unset($result['code']);
+        unset($result['status']);
+
+        return $result;
     }
 }
