@@ -31,7 +31,7 @@ class Arp
     {
         $url = $this->curl->getApiUrl("/resources/ip/arp/$ip/$cidr");
         $result = $this->curl->get($url);
-        if (!isset($result) || !isset($result['arp'])) {
+        if (!isset($result['arp']) || (!count($result['arp']) > 0)) {
             return null;
         }
 

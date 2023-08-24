@@ -31,7 +31,7 @@ class Log
      *
      * @see https://docs.librenms.org/API/Logs/#list_alertlog
      */
-    public function getAlerts(
+    public function getAlertLogs(
         int|string $hostname = null,
         int $limit = null,
         int $start = null,
@@ -56,7 +56,7 @@ class Log
      *
      * @see https://docs.librenms.org/API/Logs/#list_authlog
      */
-    public function getAuths(
+    public function getAuthLogs(
         int|string $hostname = null,
         int $limit = null,
         int $start = null,
@@ -81,7 +81,7 @@ class Log
      *
      * @see https://docs.librenms.org/API/Logs/#list_eventlog
      */
-    public function getEvents(
+    public function getEventLogs(
         int|string $hostname = null,
         int $limit = null,
         int $start = null,
@@ -106,7 +106,7 @@ class Log
      *
      * @see https://docs.librenms.org/API/Logs/#list_syslog
      */
-    public function sys(
+    public function getSysLogs(
         int|string $hostname = null,
         int $limit = null,
         int $start = null,

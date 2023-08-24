@@ -36,28 +36,6 @@ class Curl
         return $result;
     }
 
-    public function init(string $url): \CurlHandle
-    {
-        $curl = curl_init($url);
-
-        if (!$curl instanceof \CurlHandle) {
-            throw new ApiException('Curl failure');
-        }
-
-        curl_setopt($curl, CURLOPT_HTTPHEADER, [
-            'X-Auth-Token: '.$this->token,
-            'User-Agent: PHP',
-            'Accept: */*',
-            'Content-Type: application/json',
-        ]);
-
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_HEADER, 1);
-
-        return $curl;
-    }
-
     /**
      * Do a curl get request.
      */
@@ -125,6 +103,29 @@ class Curl
         return $this->response($curl, $url);
     }
 
+    private function init(string $url): \CurlHandle
+    {
+        $curl = curl_init($url);
+
+        if (!$curl instanceof \CurlHandle) {
+            throw new ApiException('Curl failure');
+        }
+
+        curl_setopt($curl, CURLOPT_HTTPHEADER, [
+            'X-Auth-Token: '.$this->token,
+            'User-Agent: PHP',
+            'Accept: */*',
+            'Content-Type: application/json',
+        ]);
+
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_HEADER, 1);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 3);
+
+        return $curl;
+    }
+
     /**
      * Get response.
      *
@@ -135,10 +136,24 @@ class Curl
         $response = curl_exec($curl);
         if (!$response) {
             $error = curl_error($curl);
-            if (empty($error)) {
-                $error = 'Unknown curl error occurred';
+            $errNumb = curl_errno($curl);
+            switch ($errNumb) {
+                case 3:
+                    $error = 'URL malformed';
+                    break;
+                case 6:
+                    $error = 'Could not resolve host';
+                    break;
+                case 28:
+                    $error = 'Could not connect';
+                    break;
+                default:
+                    if (empty($error)) {
+                        $error = 'Unknow curl error';
+                    }
+                    break;
             }
-            // throw new ApiException("Connection failure : $url");
+
             throw new ApiException($error);
         }
 
@@ -162,15 +177,14 @@ class Curl
                 break;
         }
 
-        if (!($code >= 200) && ($code <= 299)) {
-            if (isset($result['message'])) {
+        $message = "It's broke";
+        switch ($code) {
+            case 200:
+                return $result;
+            case 401:
                 throw new ApiException($result['message']);
-            } else {
-                if ($code >= 300) {
-                    throw new ApiException('Please verify url');
-                }
-                throw new ApiException("Please check your settings URL : $url");
-            }
+            default:
+                break;
         }
 
         if (isset($result['status'])) {

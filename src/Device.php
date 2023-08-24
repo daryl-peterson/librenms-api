@@ -436,7 +436,7 @@ class Device
         string $from = null,
         string $to = null
     ): ?array {
-        return $this->api->log->getAlerts($hostname, $limit, $start, $from, $to);
+        return $this->api->log->getAlertLogs($hostname, $limit, $start, $from, $to);
     }
 
     /**
@@ -474,7 +474,7 @@ class Device
         string $from = null,
         string $to = null
     ): ?array {
-        return $this->api->log->getEvents($hostname, $limit, $start, $from, $to);
+        return $this->api->log->getEventLogs($hostname, $limit, $start, $from, $to);
     }
 
     /**

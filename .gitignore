@@ -4,4 +4,5 @@
 /.phpunit.cache/
 /tests/config.php
 /logs/
+/reports/
 /vendor/

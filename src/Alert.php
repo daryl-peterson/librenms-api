@@ -34,25 +34,33 @@ class Alert
      *
      * @see https://docs.librenms.org/API/Alerts/#get_alert
      */
-    public function get(int $id): ?\stdClass
+    public function get(int $id, bool $state = null): ?\stdClass
     {
+        $params = [];
+        $suffix = false;
+        if (isset($state)) {
+            $params['state'] = $state;
+        }
+        if (count($params) > 0) {
+            $suffix = http_build_query($params);
+        }
+
         $url = $this->curl->getApiUrl("/alerts/$id");
+        if ($suffix) {
+            $url .= "?$suffix";
+        }
+
         $result = $this->curl->get($url);
 
-        if (!isset($result) || !isset($result['alerts'])) {
+        if (!isset($result['alerts'][0])) {
             return null;
         }
 
-        if (0 !== count($result['alerts'])) {
-            return $result['alerts'][0];
-        }
-
-        $result = $this->all();
-        if (!isset($result[$id])) {
+        if (!is_object($result['alerts'][0])) {
             return null;
         }
 
-        return $result[$id];
+        return $result['alerts'][0];
     }
 
     /**
@@ -65,11 +73,9 @@ class Alert
         $url = $this->curl->getApiUrl("/alerts/$id");
         $result = $this->curl->put($url);
 
-        if (!isset($result) || !isset($result['code'])) {
-            return false;
-        }
+        $msg = strtoupper($result['message']);
 
-        if (200 !== $result['code']) {
+        if (!isset($result) || str_contains($msg, 'NO ALERT')) {
             return false;
         }
 
@@ -86,11 +92,9 @@ class Alert
         $url = $this->curl->getApiUrl("/alerts/unmute/$id");
         $result = $this->curl->put($url);
 
-        if (!isset($result) || !isset($result['code'])) {
-            return false;
-        }
+        $msg = strtoupper($result['message']);
 
-        if (200 !== $result['code']) {
+        if (!isset($result) || str_contains($msg, 'NO ALERT')) {
             return false;
         }
 
@@ -115,6 +119,7 @@ class Alert
         int $alert_rule = null
     ): ?array {
         $params = [];
+        $suffix = false;
         if (isset($state)) {
             if (!in_array($state, [0, 1, 2])) {
                 throw new ApiException(self::EXCEPTION_STATE);
@@ -141,16 +146,17 @@ class Alert
         if (isset($alert_rule)) {
             $params['alert_rule'] = $alert_rule;
         }
-        $suffix = http_build_query($params);
-
-        $url = $this->curl->getApiUrl('/alerts?'.$suffix);
-        $result = $this->curl->get($url);
-
-        if (!isset($result['alerts'])) {
-            return null;
+        if (count($params) > 0) {
+            $suffix = http_build_query($params);
         }
 
-        if (0 === count($result['alerts'])) {
+        $url = $this->curl->getApiUrl('/alerts');
+        if ($suffix) {
+            $url .= "?$suffix";
+        }
+        $result = $this->curl->get($url);
+
+        if (!isset($result['alerts']) || (0 === count($result['alerts']))) {
             return null;
         }
 
@@ -166,7 +172,7 @@ class Alert
     /**
      * Get all alerts.
      */
-    public function all(): ?array
+    public function all(): array
     {
         $results = [];
         for ($i = 0; $i < 3; ++$i) {
@@ -174,9 +180,6 @@ class Alert
             if (is_array($tmp)) {
                 $results = array_replace($results, $tmp);
             }
-        }
-        if (0 === count($results)) {
-            return null;
         }
 
         ksort($results);

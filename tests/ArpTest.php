@@ -3,11 +3,11 @@
 namespace LibrenmsApiClient\Tests;
 
 use LibrenmsApiClient\ApiClient;
-use LibrenmsApiClient\Location;
+use LibrenmsApiClient\Arp;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Location API Unit tests.
+ * Class description.
  *
  * @category
  *
@@ -35,14 +35,16 @@ use PHPUnit\Framework\TestCase;
  * @covers \LibrenmsApiClient\Vlan
  * @covers \LibrenmsApiClient\Wireless
  */
-class LocationTest extends TestCase
+class ArpTest extends TestCase
 {
     private ApiClient $api;
+    private Arp $arp;
 
-    public function testListing()
+    public function testGet()
     {
-        $result = $this->api->location->getListing();
-        $this->assertIsArray($result);
+        $arp = $this->arp;
+        $result = $arp->get('169.198.0.1', '32');
+        $this->assertNull($result);
     }
 
     public function setUp(): void
@@ -51,6 +53,7 @@ class LocationTest extends TestCase
             global $url,$token;
 
             $this->api = new ApiClient($url, $token);
+            $this->arp = $this->api->arp;
         }
     }
 }
