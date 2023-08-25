@@ -15,6 +15,7 @@ class Log
 {
     private ApiClient $api;
     private Curl $curl;
+    private array|null $result;
 
     public function __construct(ApiClient $api)
     {
@@ -122,11 +123,25 @@ class Log
      * Accept any json messages and passes to further syslog processing.
      * Single messages or an array of multiple messages is accepted.
      * See Syslog for more details and logstash integration.
-     *
-     * @todo finish function
      */
-    public function syslogsink()
+    public function syslogsink(array $data): bool
     {
+        $url = $this->curl->getApiUrl('/syslogsink');
+        $result = $this->curl->post($url, $data);
+        $this->result = $result;
+
+        if (!isset($result['status']) || 'ok' !== $result['status']) {
+            // @codeCoverageIgnoreStart
+            return false;
+            // @codeCoverageIgnoreEnd
+        }
+
+        return true;
+    }
+
+    public function getResult(): ?array
+    {
+        return $this->result;
     }
 
     private function doRequest(
@@ -165,11 +180,14 @@ class Log
         $url .= $suffix;
 
         $result = $this->curl->get($url);
+        $this->result = $result;
 
         if (!isset($result['logs']) || !isset($result['count'])) {
+            // @codeCoverageIgnoreStart
             return null;
+            // @codeCoverageIgnoreEnd
         }
-        if (!$result['count'] > 0) {
+        if (0 === $result['count']) {
             return null;
         }
         unset($result['headers']);

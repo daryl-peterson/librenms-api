@@ -17,17 +17,13 @@ class Device
 {
     private ApiClient $api;
     private Curl $curl;
-    private array $list;
-    private string $fileName;
+    public array|null $result;
 
     public function __construct(ApiClient $api)
     {
         $this->api = $api;
         $this->curl = $api->curl;
-
-        $dir = sys_get_temp_dir();
-        $this->fileName = $dir.'/device-list.txt';
-        $this->list = [];
+        $this->result = [];
     }
 
     /**
@@ -74,68 +70,27 @@ class Device
         }
 
         $url = $this->curl->getApiUrl('/devices');
-
-        $response = $this->curl->post($url, $device);
-        if (!isset($response) || !isset($response['devices'])) {
+        $this->result = $this->curl->post($url, $device);
+        if (!isset($this->result['devices']) || !is_array($this->result['devices'])) {
             return null;
         }
 
-        return $response['devices'];
+        return $this->result['devices'];
     }
 
     /**
      * Get device list.
      */
-    public function getListing(bool $force = false): ?array
+    public function getListing(): ?array
     {
-        if (!$force) {
-            if (isset($this->list) & is_array($this->list)) {
-                if (count($this->list) > 0) {
-                    return $this->list;
-                }
-            }
-
-            if (file_exists($this->fileName)) {
-                $mtime = filemtime($this->fileName) + 3600;
-                $ctime = time();
-
-                if ($mtime > $ctime) {
-                    $this->list = (array) unserialize(file_get_contents($this->fileName));
-                }
-
-                if (count($this->list) > 0) {
-                    return $this->list;
-                }
-            }
-        }
-
         $url = $this->curl->getApiUrl('/devices/');
-        $response = $this->curl->get($url);
-        if (!$response) {
+        $this->result = $this->curl->get($url);
+
+        if (!isset($this->result['devices']) || !is_array($this->result['devices'])) {
             return null;
         }
 
-        if (!isset($response['devices'])) {
-            return null;
-        }
-
-        $result = [];
-        $result['org'] = $response['devices'];
-        $result['id'] = [];
-        $result['ip'] = [];
-        $result['host'] = [];
-
-        foreach ($response['devices'] as $key => $device) {
-            $result['id']['dev-'.$device->device_id] = $key;
-            $result['ip'][$device->ip] = $key;
-            $result['host'][$device->hostname] = $key;
-        }
-
-        $this->list = $result;
-
-        file_put_contents($this->fileName, serialize($this->list));
-
-        return $this->list;
+        return $this->result['devices'];
     }
 
     /**
@@ -150,17 +105,13 @@ class Device
     public function getFbd(int|string $hostname): ?array
     {
         $url = $this->curl->getApiUrl("/devices/$hostname/fdb");
-        $response = $this->curl->get($url);
+        $this->result = $this->curl->get($url);
 
-        if (!isset($response['ports_fdb'])) {
+        if (!isset($this->result['ports_fdb']) || !count($this->result['ports_fdb']) > 0) {
             return null;
         }
 
-        if (!count($response['ports_fdb']) > 0) {
-            return null;
-        }
-
-        return $response['ports_fdb'];
+        return $this->result['ports_fdb'];
     }
 
     /**
@@ -173,12 +124,12 @@ class Device
     public function delete(int|string $hostname): ?array
     {
         $url = $this->curl->getApiUrl("/devices/$hostname");
-        $response = $this->curl->delete($url);
-        if (!isset($response) || !isset($response['devices'])) {
+        $this->result = $this->curl->delete($url);
+        if (!isset($this->result['devices'])) {
             return null;
         }
 
-        return $response['devices'];
+        return $this->result['devices'];
     }
 
     /**
@@ -197,17 +148,13 @@ class Device
     public function get(int|string $hostname): ?\stdClass
     {
         $url = $this->curl->getApiUrl('/devices/'.$hostname);
-        $result = $this->curl->get($url);
+        $this->result = $this->curl->get($url);
 
-        if (!isset($result)) {
+        if (!isset($this->result['devices'][0]) || !is_object($this->result['devices'][0])) {
             return null;
         }
 
-        if (!isset($result['devices'][0])) {
-            return null;
-        }
-
-        return $result['devices'][0];
+        return $this->result['devices'][0];
     }
 
     /**
@@ -268,13 +215,13 @@ class Device
     public function getAvailability(int|string $hostname): ?array
     {
         $url = $this->curl->getApiUrl("/devices/$hostname/availability");
-        $result = $this->curl->get($url);
+        $this->result = $this->curl->get($url);
 
-        if (!isset($result) || !isset($result['availability'])) {
+        if (!isset($this->result['availability'])) {
             return null;
         }
 
-        return $result['availability'];
+        return $this->result['availability'];
     }
 
     /**
@@ -287,13 +234,13 @@ class Device
     public function discover(int|string $hostname): bool
     {
         $url = $this->curl->getApiUrl("/devices/$hostname/discover");
-        $result = $this->curl->get($url);
+        $this->result = $this->curl->get($url);
 
-        if (!isset($result['result']) || !isset($result['code'])) {
+        if (!isset($this->result['result']) || !isset($this->result['code'])) {
             return false;
         }
 
-        if (200 !== $result['code']) {
+        if (200 !== $this->result['code']) {
             return false;
         }
 
@@ -332,13 +279,13 @@ class Device
 
         $url = $this->curl->getApiUrl("/devices/$hostname/maintenance");
 
-        $result = $this->curl->post($url, $data);
+        $this->result = $this->curl->post($url, $data);
 
-        if (!isset($result['result']) || !isset($result['code'])) {
+        if (!isset($this->result['result']) || !isset($this->result['code'])) {
             return false;
         }
 
-        if (200 !== $result['code']) {
+        if (200 !== $this->result['code']) {
             return false;
         }
 
@@ -397,13 +344,13 @@ class Device
     public function getIpList(int|string $hostname): ?array
     {
         $url = $this->curl->getApiUrl("/devices/$hostname/ip");
-        $result = $this->curl->get($url);
+        $this->result = $this->curl->get($url);
 
-        if (!isset($result['addresses'])) {
+        if (!isset($this->result['addresses'])) {
             return null;
         }
 
-        return $result['addresses'];
+        return $this->result['addresses'];
     }
 
     /**
@@ -417,7 +364,7 @@ class Device
      */
     public function getLinks(int|string $hostname): ?array
     {
-        return $this->api->link->get($hostname);
+        return $this->api->link->getByHost($hostname);
     }
 
     /**
@@ -451,13 +398,13 @@ class Device
     public function getOutages(int|string $hostname): ?array
     {
         $url = $this->curl->getApiUrl("/devices/$hostname/outages");
-        $result = $this->curl->get($url);
+        $this->result = $this->curl->get($url);
 
-        if (!isset($result['outages'])) {
+        if (!isset($this->result['outages'])) {
             return null;
         }
 
-        return $result['outages'];
+        return $this->result['outages'];
     }
 
     /**
@@ -487,12 +434,12 @@ class Device
     public function rename(int|string $hostname, string $new_name): bool
     {
         $url = $this->curl->getApiUrl("/devices/$hostname/rename/$new_name");
-        $result = $this->curl->patch($url);
+        $this->result = $this->curl->patch($url);
 
-        if (!isset($result['code'])) {
+        if (!isset($this->result['code'])) {
             return false;
         }
-        if (200 !== $result['code']) {
+        if (200 !== $this->result['code']) {
             return false;
         }
 

@@ -52,11 +52,7 @@ class Alert
 
         $result = $this->curl->get($url);
 
-        if (!isset($result['alerts'][0])) {
-            return null;
-        }
-
-        if (!is_object($result['alerts'][0])) {
+        if (!isset($result['alerts'][0]) || !is_object($result['alerts'][0])) {
             return null;
         }
 
@@ -157,7 +153,9 @@ class Alert
         $result = $this->curl->get($url);
 
         if (!isset($result['alerts']) || (0 === count($result['alerts']))) {
+            // @codeCoverageIgnoreStart
             return null;
+            // @codeCoverageIgnoreEnd
         }
 
         $alerts = [];

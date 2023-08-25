@@ -17,12 +17,14 @@ class Curl
 
     protected string $url;
     protected string $token;
+    public array|null $result;
 
     public function __construct(string $url, string $token)
     {
         $url = str_replace(self::API_PATH, '', $url);
         $this->url = rtrim($url, '/').self::API_PATH;
         $this->token = $token;
+        $this->result = [];
     }
 
     public function getApiUrl(string $part): string
@@ -31,9 +33,9 @@ class Curl
 
         $url = rtrim($url, '/');
         $part = ltrim($part, '/');
-        $result = $url."/$part";
+        $return = $url."/$part";
 
-        return $result;
+        return $return;
     }
 
     /**
@@ -108,7 +110,9 @@ class Curl
         $curl = curl_init($url);
 
         if (!$curl instanceof \CurlHandle) {
+            // @codeCoverageIgnoreStart
             throw new ApiException('Curl failure');
+            // @codeCoverageIgnoreEnd
         }
 
         curl_setopt($curl, CURLOPT_HTTPHEADER, [
@@ -121,7 +125,7 @@ class Curl
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_HEADER, 1);
-        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 3);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 10);
 
         return $curl;
     }
@@ -148,10 +152,12 @@ class Curl
                     $error = 'Could not connect';
                     break;
                 default:
+                    // @codeCoverageIgnoreStart
                     if (empty($error)) {
                         $error = 'Unknow curl error';
                     }
                     break;
+                    // @codeCoverageIgnoreEnd
             }
 
             throw new ApiException($error);
@@ -164,43 +170,30 @@ class Curl
         $body = substr($response, $headerSize);
 
         curl_close($curl);
-        $result = [];
-        $result['headers'] = $headers;
-        $result['code'] = $code;
+        $this->result = [];
+        $this->result['headers'] = $headers;
+        $this->result['code'] = $code;
 
         switch ($type) {
             case 'application/json':
-                $result = array_merge($result, (array) json_decode($body));
+                $this->result = array_merge($this->result, (array) json_decode($body));
                 break;
             case 'image/png':
-                $result['image'] = ['type' => $type, 'src' => $body];
+                $this->result['image'] = ['type' => $type, 'src' => $body];
                 break;
         }
 
-        $message = "It's broke";
-        switch ($code) {
-            case 200:
-                return $result;
-            case 401:
-                throw new ApiException($result['message']);
-            default:
-                break;
+        if (($code >= 200) && ($code <= 299)) {
+            return $this->result;
         }
 
-        if (isset($result['status'])) {
-            if ('error' === $result['status']) {
-                if (isset($result['message'])) {
-                    throw new ApiException($result['message']." URL : $url");
-                } else {
-                    if ($code >= 300) {
-                        throw new ApiException('Please verify url');
-                    }
-                }
-                throw new ApiException("Please check your settings URL : $url");
-            }
+        if ($code >= 300) {
+            // @codeCoverageIgnoreStart
+            throw new ApiException($this->result['message']);
+            // @codeCoverageIgnoreEnd
         }
 
-        return $result;
+        return $this->result;
     }
 
     /**

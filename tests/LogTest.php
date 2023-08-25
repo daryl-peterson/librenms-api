@@ -47,7 +47,7 @@ class LogTest extends TestCase
         $this->assertIsArray($result);
     }
 
-    public function testGetAlertsHostName()
+    public function testGetAlertLogs()
     {
         $log = $this->api->log;
         $result = $log->getAlertLogs(null, 1);
@@ -55,6 +55,7 @@ class LogTest extends TestCase
             return;
         }
         $alert = array_pop($result['logs']);
+
         $result = $log->getAlertLogs($alert->device_id, 1);
         $this->assertIsArray($result);
 
@@ -67,16 +68,21 @@ class LogTest extends TestCase
         $to = strtotime($alert->time_logged.'60 minute');
         $result = $log->getAlertLogs(null, 1, 0, $alert->time_logged, $to);
         $this->assertIsArray($result);
+        $this->assertIsArray($log->getResult());
+
+        $nt = date('m/d/Y H:i', strtotime('+1 year'));
+        $result = $log->getAlertLogs(null, null, null, $nt, $nt);
+        $this->assertNull($result);
     }
 
-    public function testGetEvents()
+    public function testGetEventLogs()
     {
         $log = $this->api->log;
         $result = $log->getEventLogs(null, 1);
         $this->assertIsArray($result);
     }
 
-    public function testGetAuths()
+    public function testGetAuthLogs()
     {
         $log = $this->api->log;
         $result = $log->getAuthLogs(null, 1);
@@ -93,6 +99,14 @@ class LogTest extends TestCase
         } else {
             $result = false;
         }
+        $this->assertTrue($result);
+    }
+
+    public function testSyslogSink()
+    {
+        $log = $this->api->log;
+        $data = ['msg' => 'API TEST', 'host' => 'mybrain.com'];
+        $result = $log->syslogsink($data);
         $this->assertTrue($result);
     }
 

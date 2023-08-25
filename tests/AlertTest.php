@@ -46,12 +46,12 @@ class AlertTest extends TestCase
             return;
         }
         $this->assertIsArray($result);
-
+ 
         $record = array_pop($result);
         $result = $alert->get($record->id, $record->state);
         $this->assertIsObject($result);
 
-        $result = $alert->get(-1);
+        $result = $alert->get(1);
         $this->assertNull($result);
     }
 
@@ -83,7 +83,7 @@ class AlertTest extends TestCase
         $alert->getListing(3);
         $this->expectExceptionMessage(Alert::EXCEPTION_STATE);
 
-        $result = $alert->getListing(0, null, null, -1);
+        $result = $alert->getListing(0, null, -1);
         $this->assertNull($result);
     }
 

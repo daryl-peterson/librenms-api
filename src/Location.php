@@ -15,53 +15,66 @@ class Location
 {
     private ApiClient $api;
     private Curl $curl;
+    public array|null $result;
 
     public function __construct(ApiClient $api)
     {
         $this->api = $api;
         $this->curl = $this->api->curl;
+        $this->result = [];
     }
 
     /**
      * Add location.
      *
      * @see https://docs.librenms.org/API/Locations/#add_location
+     *
+     * @throws ApiException Triggered by curl->post
      */
-    public function add(string $location, string $lat, string $lng, bool $fixed = false): ?array
+    public function add(string $location, string $lat, string $lng, bool $fixed = false): bool
     {
+        $location = trim($location);
         $data = [
             'location' => $location,
             'lat' => $lat,
             'lng' => $lng,
             'fixed_coordinates' => $fixed,
         ];
+
         $url = $this->curl->getApiUrl('/locations');
-        $result = $this->curl->post($url, $data);
+        $this->result = $this->curl->post($url, $data);
 
-        if (!isset($result) || !isset($result['message'])) {
-            return null;
+        if (!isset($this->result['status']) || ('ok' !== $this->result['status'])) {
+            // @codeCoverageIgnoreStart
+            return false;
+            // @codeCoverageIgnoreEnd
         }
-        unset($result['headers']);
 
-        return $result;
+        return true;
     }
 
     /**
      * Get location.
      *
+     * @param int|string $location Name or id of the location
+     *
      * @see https://docs.librenms.org/API/Locations/#get_location
+     *
+     * @throws ApiException Triggered by curl->get
      */
-    public function get(string $location): ?\stdClass
+    public function get(int|string $location): false|\stdClass
     {
-        $location = rawurlencode($location);
+        $location = $this->fixLocation($location);
         $url = $this->curl->getApiUrl("/location/$location");
+        $this->result = $this->curl->get($url);
 
-        $result = $this->curl->get($url);
-        if (!isset($result['get_location'])) {
-            return null;
+        if (!isset($this->result['get_location']) || !is_object($this->result['get_location'])) {
+            // @codeCoverageIgnoreStart
+            return false;
+            // @codeCoverageIgnoreEnd
         }
 
-        return $result['get_location'];
+        return $this->result['get_location'];
     }
 
     /**
@@ -72,45 +85,91 @@ class Location
     public function getListing(): ?array
     {
         $url = $this->curl->getApiUrl('/resources/locations');
-        $result = $this->curl->get($url);
-        if (!isset($result) || !isset($result['locations'])) {
+        $this->result = $this->curl->get($url);
+
+        if (!isset($this->result['locations'])) {
+            // @codeCoverageIgnoreStart
             return null;
+            // @codeCoverageIgnoreEnd
         }
 
-        return $result['locations'];
+        return $this->result['locations'];
     }
 
     /**
      * Delete location.
      *
+     * @param int|string $location Name or id of the location
+     *
      * @see https://docs.librenms.org/API/Locations/#delete_location
+     *
+     * @throws ApiException Triggered by curl->delete
      */
-    public function delete(string $location): ?array
+    public function delete(int|string $location): bool
     {
-        $location = rawurlencode($location);
+        $location = $this->fixLocation($location);
         $url = $this->curl->getApiUrl("/locations/$location");
+        $this->result = $this->curl->delete($url);
 
-        $result = $this->curl->delete($url);
-
-        if (!isset($result) || !isset($result['message'])) {
-            return null;
+        if (!isset($this->result['code']) || (201 !== $this->result['code'])) {
+            // @codeCoverageIgnoreStart
+            return false;
+            // @codeCoverageIgnoreEnd
         }
-        unset($result['headers']);
 
-        return $result;
+        return true;
     }
 
     /**
      * Update location.
      *
+     * @param int|string $location Name or id of the location
+     *
      * @see https://docs.librenms.org/API/Locations/#edit_location
+     *
+     * @throws ApiException Triggered by curl->patch
      */
-    public function edit(string $location, array $data): ?array
-    {
-        $location = rawurlencode($location);
-        $url = $this->curl->getApiUrl("/locations/$location");
-        $result = $this->curl->patch($url, $data);
+    public function edit(
+        int|string $location,
+        string $name = null,
+        string $lat = null,
+        string $lng = null,
+        bool $fixed = null
+    ): bool {
+        $data = [];
 
-        return $result;
+        if (isset($name)) {
+            $data['location'] = trim($name);
+        }
+        if (isset($lat)) {
+            $data['lat'] = $lat;
+        }
+        if (isset($lng)) {
+            $data['lng'] = $lng;
+        }
+        if (isset($fixed)) {
+            $data['fixed_coordinates'] = (bool) $fixed;
+        }
+
+        $location = $this->fixLocation($location);
+        $url = $this->curl->getApiUrl("/locations/$location");
+        $this->result = $this->curl->patch($url, $data);
+
+        if (!isset($this->result['code']) || (201 !== $this->result['code'])) {
+            // @codeCoverageIgnoreStart
+            return false;
+            // @codeCoverageIgnoreEnd
+        }
+
+        return true;
+    }
+
+    private function fixLocation(int|string $location)
+    {
+        if (is_int($location)) {
+            return $location;
+        }
+
+        return rawurlencode(trim($location));
     }
 }

@@ -3,7 +3,8 @@
 namespace LibrenmsApiClient\Tests;
 
 use LibrenmsApiClient\ApiClient;
-use LibrenmsApiClient\Arp;
+use LibrenmsApiClient\ApiException;
+use LibrenmsApiClient\Link;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -35,18 +36,41 @@ use PHPUnit\Framework\TestCase;
  * @covers \LibrenmsApiClient\Vlan
  * @covers \LibrenmsApiClient\Wireless
  */
-class ArpTest extends TestCase
+class LinkTest extends TestCase
 {
     private ApiClient $api;
-    private Arp $arp;
+    private Link $link;
 
-    public function testGet()
+    public function testGetById()
     {
-        $arp = $this->arp;
-        $result = $arp->get('169.198.0.1', '32');
-        $this->assertNull($result);
+        $link = $this->link;
+        $result = $link->getListing();
+        $object = array_pop($result);
 
-        $result = $arp->get('0.0.0.0', '1');
+        $result = $link->getById((int) $object->id);
+        $this->assertIsObject($result);
+
+        $this->expectException(ApiException::class);
+        $result = $link->getById(0);
+    }
+
+    public function testGetByHost()
+    {
+        $link = $this->link;
+        $result = $link->getListing();
+        $object = array_pop($result);
+
+        $result = $link->getByHost($object->local_device_id);
+        $this->assertIsArray($result);
+
+        $this->expectException(ApiException::class);
+        $result = $link->getByHost(0);
+    }
+
+    public function testGetListing()
+    {
+        $link = $this->link;
+        $result = $link->getListing();
         $this->assertIsArray($result);
     }
 
@@ -56,7 +80,7 @@ class ArpTest extends TestCase
             global $url,$token;
 
             $this->api = new ApiClient($url, $token);
-            $this->arp = $this->api->arp;
+            $this->link = $this->api->link;
         }
     }
 }
