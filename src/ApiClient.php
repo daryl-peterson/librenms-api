@@ -50,10 +50,10 @@ class ApiClient
 
         $this->alert = new Alert($this);
         $this->alert_rule = new AlertRule($this);
-        $this->arp = new Arp($this);
-        $this->component = new Component($this);
+        $this->arp = new Arp($this->curl);
+        $this->component = new Component($this->curl);
         $this->device = new Device($this);
-        $this->device_group = new DeviceGroup($this);
+        $this->device_group = new DeviceGroup($this->curl);
         $this->graph = new Graph($this);
         $this->health = new Health($this);
         $this->inventory = new Inventory($this);
@@ -61,9 +61,9 @@ class ApiClient
         $this->location = new Location($this);
         $this->log = new Log($this);
         $this->port = new Port($this);
-        $this->vlan = new Vlan($this);
+        $this->vlan = new Vlan($this->curl);
         $this->sensor = new Sensor($this);
-        $this->system = new System($this);
+        $this->system = new System($this->curl);
         $this->wireless = new Wireless($this);
     }
 }

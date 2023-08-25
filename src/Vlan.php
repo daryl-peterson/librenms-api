@@ -3,9 +3,7 @@
 namespace LibrenmsApiClient;
 
 /**
- * Class description.
- *
- * @category
+ * LibreNMS API Vlan.
  *
  * @author      Daryl Peterson <@gmail.com>
  * @copyright   Copyright (c) 2023, Daryl Peterson
@@ -13,18 +11,16 @@ namespace LibrenmsApiClient;
  *
  * @since       0.0.1
  * @see https://docs.librenms.org/API/Switching/
- *
- * @todo unit test
  */
 class Vlan
 {
-    private ApiClient $api;
     private Curl $curl;
+    public array|null $result;
 
-    public function __construct(ApiClient $api)
+    public function __construct(Curl $curl)
     {
-        $this->api = $api;
-        $this->curl = $api->curl;
+        $this->curl = $curl;
+        $this->result = [];
     }
 
     /**
@@ -35,12 +31,12 @@ class Vlan
     public function get(int|string $hostname): ?array
     {
         $url = $this->curl->getApiUrl("devices/$hostname/vlans");
-        $result = $this->curl->get($url);
-        if (!isset($result) || !isset($result['vlans'])) {
+        $this->result = $this->curl->get($url);
+        if (!isset($this->result['vlans']) || (0 === count($this->result['vlans']))) {
             return null;
         }
 
-        return $result['vlans'];
+        return $this->result['vlans'];
     }
 
     /**
@@ -51,11 +47,13 @@ class Vlan
     public function getListing(): ?array
     {
         $url = $this->curl->getApiUrl('/resources/vlans');
-        $result = $this->curl->get($url);
-        if (!isset($result) || !isset($result['vlans'])) {
+        $this->result = $this->curl->get($url);
+        if (!isset($this->result['vlans']) || (0 === count($this->result['vlans']))) {
+            // @codeCoverageIgnoreStart
             return null;
+            // @codeCoverageIgnoreEnd
         }
 
-        return $result['vlans'];
+        return $this->result['vlans'];
     }
 }

@@ -13,13 +13,11 @@ namespace LibrenmsApiClient;
  */
 class Arp
 {
-    private ApiClient $api;
     private Curl $curl;
 
-    public function __construct(ApiClient $api)
+    public function __construct(Curl $curl)
     {
-        $this->api = $api;
-        $this->curl = $api->curl;
+        $this->curl = $curl;
     }
 
     /**
@@ -32,7 +30,9 @@ class Arp
         $url = $this->curl->getApiUrl("/resources/ip/arp/$ip/$cidr");
         $result = $this->curl->get($url);
         if (!isset($result['arp']) || (!count($result['arp']) > 0)) {
+            // @codeCoverageIgnoreStart
             return null;
+            // @codeCoverageIgnoreEnd
         }
 
         return $result['arp'];

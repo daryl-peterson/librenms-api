@@ -13,13 +13,11 @@ namespace LibrenmsApiClient;
  */
 class DeviceGroup
 {
-    private ApiClient $api;
     private Curl $curl;
 
-    public function __construct(ApiClient $api)
+    public function __construct(Curl $curl)
     {
-        $this->api = $api;
-        $this->curl = $this->api->curl;
+        $this->curl = $curl;
     }
 
     /**
@@ -34,7 +32,9 @@ class DeviceGroup
         $url = $this->curl->getApiUrl('/devicegroups');
         $result = $this->curl->get($url);
         if (!isset($result['groups'])) {
+            // @codeCoverageIgnoreStart
             return null;
+            // @codeCoverageIgnoreEnd
         }
 
         return $result['groups'];
@@ -53,10 +53,27 @@ class DeviceGroup
      *
      * @see https://docs.librenms.org/API/DeviceGroups/#add_devicegroup
      */
-    public function add(string $name, bool $static, string $desc, $rules, $devices)
+    public function add(string $name, bool $static, string $desc = null, array $rules = null, array $devices = null)
     {
-        // /devicegroups
-        // post
+        $url = $this->curl->getApiUrl('/devicegroups');
+
+        $data = [];
+        $data['name'] = $name;
+
+        if (isset($desc)) {
+            $data['desc'] = $desc;
+        }
+
+        if ($static) {
+            if (!isset($devices) || !is_array($devices) || 0 === count($devices)) {
+                throw new ApiException('Static group requires a device list');
+            }
+            $data['devices'] = $devices;
+        } else {
+            if (!isset($rules) || !is_array($rules) || 0 === count($rules)) {
+                throw new ApiException('Dynamic requires rules to be set');
+            }
+        }
     }
 
     public function getDevicesByGroup()

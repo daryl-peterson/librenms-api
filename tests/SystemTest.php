@@ -2,43 +2,46 @@
 
 namespace LibrenmsApiClient\Tests;
 
-use LibrenmsApiClient\Arp;
 use LibrenmsApiClient\Curl;
+use LibrenmsApiClient\System;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Class description.
  *
- * @category
- *
  * @author      Daryl Peterson <@gmail.com>
  * @copyright   Copyright (c) 2020, Daryl Peterson
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
- * @covers \LibrenmsApiClient\Arp
  * @covers \LibrenmsApiClient\Curl
+ * @covers \LibrenmsApiClient\System
  */
-class ArpTest extends TestCase
+class SystemTest extends TestCase
 {
-    private Arp $arp;
+    private System $system;
 
     public function testGet()
     {
-        $arp = $this->arp;
-        $result = $arp->get('169.198.0.1', '32');
-        $this->assertNull($result);
+        $sys = $this->system;
+        $result = $sys->get();
+        $this->assertIsArray($result);
+    }
 
-        $result = $arp->get('0.0.0.0', '1');
+    public function testGetEndpoints()
+    {
+        $sys = $this->system;
+        $result = $sys->getEndPoints();
         $this->assertIsArray($result);
     }
 
     public function setUp(): void
     {
-        if (!isset($this->arp)) {
+        if (!isset($this->system)) {
             global $url,$token;
 
             $curl = new Curl($url, $token);
-            $this->arp = new Arp($curl);
+
+            $this->system = new System($curl);
         }
     }
 }

@@ -15,13 +15,13 @@ namespace LibrenmsApiClient;
  */
 class System
 {
-    private ApiClient $api;
     private Curl $curl;
+    public array|null $result;
 
-    public function __construct(ApiClient $api)
+    public function __construct(Curl $curl)
     {
-        $this->api = $api;
-        $this->curl = $api->curl;
+        $this->curl = $curl;
+        $this->result = [];
     }
 
     /**
@@ -32,32 +32,33 @@ class System
     public function get(): ?array
     {
         $url = $this->curl->getApiUrl('/system');
-        $result = $this->curl->get($url);
+        $this->result = $this->curl->get($url);
 
-        if (!isset($result) || !isset($result['system'])) {
+        if (!isset($this->result) || !isset($this->result['system'])) {
+            // @codeCoverageIgnoreStart
             return null;
+            // @codeCoverageIgnoreEnd
         }
 
-        return $result['system'];
+        return $this->result['system'];
     }
 
     /**
      * Get api end point list.
      */
-    public function endPoints(): ?array
+    public function getEndPoints(): ?array
     {
         $url = $this->curl->getApiUrl('');
-        $result = $this->curl->get($url);
-        if (!isset($result['code'])) {
+        $this->result = $this->curl->get($url);
+        if (!isset($this->result['code']) || (200 !== $this->result['code'])) {
+            // @codeCoverageIgnoreStart
             return null;
-        }
-        if (200 !== $result['code']) {
-            return null;
+            // @codeCoverageIgnoreEnd
         }
 
-        unset($result['headers']);
-        unset($result['code']);
+        unset($this->result['headers']);
+        unset($this->result['code']);
 
-        return $result;
+        return $this->result;
     }
 }
