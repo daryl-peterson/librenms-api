@@ -2,7 +2,9 @@
 
 namespace LibrenmsApiClient\Tests;
 
-use LibrenmsApiClient\ApiClient;
+use LibrenmsApiClient\Component;
+use LibrenmsApiClient\Curl;
+use LibrenmsApiClient\Device;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -12,35 +14,20 @@ use PHPUnit\Framework\TestCase;
  * @copyright   Copyright (c) 2020, Daryl Peterson
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
- * @covers \LibrenmsApiClient\Arp
- * @covers \LibrenmsApiClient\Alert
- * @covers \LibrenmsApiClient\AlertRule
- * @covers \LibrenmsApiClient\ApiClient
  * @covers \LibrenmsApiClient\Component
  * @covers \LibrenmsApiClient\Curl
  * @covers \LibrenmsApiClient\Device
- * @covers \LibrenmsApiClient\DeviceGroup
- * @covers \LibrenmsApiClient\Graph
- * @covers \LibrenmsApiClient\Health
- * @covers \LibrenmsApiClient\Inventory
- * @covers \LibrenmsApiClient\Link
- * @covers \LibrenmsApiClient\Location
- * @covers \LibrenmsApiClient\Log
- * @covers \LibrenmsApiClient\Port
- * @covers \LibrenmsApiClient\Sensor
- * @covers \LibrenmsApiClient\System
- * @covers \LibrenmsApiClient\Vlan
- * @covers \LibrenmsApiClient\Wireless
  */
 class ComponentTest extends TestCase
 {
-    private ApiClient $api;
+    private Component $component;
+    private Device $device;
 
     public function testAddGetEditDelete()
     {
-        $comp = $this->api->component;
+        $comp = $this->component;
 
-        $devices = $this->api->device->getListing();
+        $devices = $this->device->getListing();
         $device = array_pop($devices);
         $this->assertIsObject($device);
 
@@ -72,10 +59,11 @@ class ComponentTest extends TestCase
 
     public function setUp(): void
     {
-        if (!isset($this->api)) {
+        if (!isset($this->component)) {
             global $url,$token;
-
-            $this->api = new ApiClient($url, $token);
+            $curl = new Curl($url, $token);
+            $this->device = new Device($curl);
+            $this->component = new Component($curl);
         }
     }
 }

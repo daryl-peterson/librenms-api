@@ -18,9 +18,9 @@ class Link
     private Curl $curl;
     public array|null $result;
 
-    public function __construct(ApiClient $api)
+    public function __construct(Curl $curl)
     {
-        $this->curl = $api->curl;
+        $this->curl = $curl;
         $this->result = [];
     }
 

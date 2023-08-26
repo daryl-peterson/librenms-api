@@ -17,11 +17,16 @@ class Graph
 {
     private ApiClient $api;
     private Curl $curl;
+    private Device $device;
+    private Port $port;
 
-    public function __construct(ApiClient $api)
+    public array|null $result;
+
+    public function __construct(Curl $curl, Device $device, Port $port)
     {
-        $this->api = $api;
-        $this->curl = $api->curl;
+        $this->curl = $curl;
+        $this->device = $device;
+        $this->port = $port;
     }
 
     /**
@@ -36,23 +41,22 @@ class Graph
     public function getTypes(int|string $hostname): ?array
     {
         $url = $this->curl->getApiUrl("/devices/$hostname/graphs");
-        $response = $this->curl->get($url);
+        $this->result = $this->curl->get($url);
 
-        if (!isset($response)) {
+        if (!isset($this->result['graphs']) || (0 === count($this->result['graphs']))) {
+            // @codeCoverageIgnoreStart
             return null;
+            // @codeCoverageIgnoreEnd
         }
 
-        if (0 === count($response['graphs'])) {
-            return null;
-        }
-
-        return $response['graphs'];
+        return $this->result['graphs'];
     }
 
     /**
      * Get a specific graph for a device, this does not include ports.
      *
-     * @param int|string $hostname Hostname can be either the device hostname or id
+     * @param int|string  $hostname Hostname can be either the device hostname or id
+     * @param string|null $output   Set how the graph should be outputted (base64, display), defaults to display
      *
      * @return array|null Array['type'=>'image/png','src'=>'raw image']
      *
@@ -65,6 +69,13 @@ class Graph
         string $to = null,
         string $output = null
     ): ?array {
+        $device = $this->device->get($hostname);
+        if (!isset($device) || !isset($device->hostname)) {
+            return null;
+        }
+
+        $hostname = $device->device_id;
+
         $url = $this->curl->getApiUrl("/devices/$hostname/$type");
         $params = [];
         if (isset($from)) {
@@ -79,13 +90,13 @@ class Graph
 
         $suffix = http_build_query($params);
         $url .= "?$suffix";
-        $response = $this->curl->get($url);
+        $this->result = $this->curl->get($url);
 
-        if (!isset($response['image'])) {
+        if (!isset($this->result['image'])) {
             return null;
         }
 
-        return $response['image'];
+        return $this->result['image'];
     }
 
     /**
@@ -103,7 +114,7 @@ class Graph
         if (!isset($type)) {
             $type = 'port_bits';
         }
-        $device = $this->api->device->get($hostname);
+        $device = $this->device->get($hostname);
         if (!isset($device) || !isset($device->hostname)) {
             return null;
         }
@@ -111,7 +122,7 @@ class Graph
         if (isset($interfaces)) {
             $ports = $this->fixInterfaceArray($interfaces);
         } else {
-            $ports = $this->api->port->getByDevice($device->device_id);
+            $ports = $this->port->getByDevice($device->device_id);
         }
 
         if (!isset($ports)) {
@@ -121,12 +132,12 @@ class Graph
         foreach ($ports as $port) {
             try {
                 $url = $this->curl->getApiUrl("/devices/$hostname/ports/".urlencode($port->ifName)."/$type");
-                $response = $this->curl->get($url);
+                $this->result = $this->curl->get($url);
 
-                if (!is_array($response)) {
+                if (!is_array($this->result)) {
                     continue;
                 }
-                $result[$port->ifName] = $response['image'];
+                $result[$port->ifName] = $this->result['image'];
             } catch (\Throwable $th) {
                 $message = $th->getMessage();
                 if (str_contains($message, 'No Data ')) {

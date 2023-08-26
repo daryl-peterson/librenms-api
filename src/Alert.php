@@ -20,13 +20,12 @@ class Alert
     public const EXCEPTION_ORDER = 'Invalid order parameter';
 
     public AlertRule $rule;
-    private ApiClient $api;
+    public array|null $result;
     private Curl $curl;
 
-    public function __construct(ApiClient $api)
+    public function __construct(Curl $curl)
     {
-        $this->api = $api;
-        $this->curl = $api->curl;
+        $this->curl = $curl;
     }
 
     /**
@@ -50,13 +49,13 @@ class Alert
             $url .= "?$suffix";
         }
 
-        $result = $this->curl->get($url);
+        $this->result = $this->curl->get($url);
 
-        if (!isset($result['alerts'][0]) || !is_object($result['alerts'][0])) {
+        if (!isset($this->result['alerts'][0]) || !is_object($this->result['alerts'][0])) {
             return null;
         }
 
-        return $result['alerts'][0];
+        return $this->result['alerts'][0];
     }
 
     /**
@@ -67,11 +66,11 @@ class Alert
     public function acknowledge(int $id): bool
     {
         $url = $this->curl->getApiUrl("/alerts/$id");
-        $result = $this->curl->put($url);
+        $this->result = $this->curl->put($url);
 
-        $msg = strtoupper($result['message']);
+        $msg = strtoupper($this->result['message']);
 
-        if (!isset($result) || str_contains($msg, 'NO ALERT')) {
+        if (!isset($this->result) || str_contains($msg, 'NO ALERT')) {
             return false;
         }
 
@@ -86,11 +85,11 @@ class Alert
     public function unmute(int $id): bool
     {
         $url = $this->curl->getApiUrl("/alerts/unmute/$id");
-        $result = $this->curl->put($url);
+        $this->result = $this->curl->put($url);
 
-        $msg = strtoupper($result['message']);
+        $msg = strtoupper($this->result['message']);
 
-        if (!isset($result) || str_contains($msg, 'NO ALERT')) {
+        if (!isset($this->result) || str_contains($msg, 'NO ALERT')) {
             return false;
         }
 
@@ -150,16 +149,16 @@ class Alert
         if ($suffix) {
             $url .= "?$suffix";
         }
-        $result = $this->curl->get($url);
+        $this->result = $this->curl->get($url);
 
-        if (!isset($result['alerts']) || (0 === count($result['alerts']))) {
+        if (!isset($this->result['alerts']) || (0 === count($this->result['alerts']))) {
             // @codeCoverageIgnoreStart
             return null;
             // @codeCoverageIgnoreEnd
         }
 
         $alerts = [];
-        foreach ($result['alerts'] as $alert) {
+        foreach ($this->result['alerts'] as $alert) {
             $key = $alert->id;
             $alerts[$key] = $alert;
         }

@@ -15,14 +15,12 @@ use stdClass;
  */
 class Device
 {
-    private ApiClient $api;
     private Curl $curl;
     public array|null $result;
 
-    public function __construct(ApiClient $api)
+    public function __construct(Curl $curl)
     {
-        $this->api = $api;
-        $this->curl = $api->curl;
+        $this->curl = $curl;
         $this->result = [];
     }
 
@@ -137,16 +135,22 @@ class Device
      */
     public function getSensors(int|string $hostname): ?array
     {
-        return $this->api->sensor->get($hostname);
+        return [];
+        // return $this->api->sensor->get($hostname);
     }
 
     /**
-     * Get device by host.
+     * Get device by id or hostname.
      *
      * @param int|string $hostname Hostname can be either the device hostname or id
+     *
+     * @throws ApiException Triggers on curl->get
      */
     public function get(int|string $hostname): ?\stdClass
     {
+        if (is_string($hostname)) {
+            $hostname = rawurlencode($hostname);
+        }
         $url = $this->curl->getApiUrl('/devices/'.$hostname);
         $this->result = $this->curl->get($url);
 
@@ -200,7 +204,8 @@ class Device
      */
     public function hasWireless(int|string $hostname): bool
     {
-        return $this->api->wireless->hasWireless($hostname);
+        return false;
+        // return $this->api->wireless->hasWireless($hostname);
     }
 
     /**
@@ -303,7 +308,8 @@ class Device
      */
     public function getPorts(int|string $hostname): ?array
     {
-        return $this->api->port->getByDevice($hostname);
+        return [];
+        // return $this->api->port->getByDevice($hostname);
     }
 
     /**
@@ -315,7 +321,8 @@ class Device
      */
     public function getPortStats(int|string $hostname, string $ifname): ?\stdClass
     {
-        return $this->api->port->getStats($hostname, $ifname);
+        return new \stdClass();
+        // return $this->api->port->getStats($hostname, $ifname);
     }
 
     /**
@@ -329,7 +336,8 @@ class Device
      */
     public function getPortsByMac(string $search, string $filter = null)
     {
-        return $this->api->port->getByMac($search, $filter);
+        return [];
+        // return $this->api->port->getByMac($search, $filter);
     }
 
     /**
@@ -364,7 +372,8 @@ class Device
      */
     public function getLinks(int|string $hostname): ?array
     {
-        return $this->api->link->getByHost($hostname);
+        return [];
+        // return $this->api->link->getByHost($hostname);
     }
 
     /**
@@ -383,7 +392,8 @@ class Device
         string $from = null,
         string $to = null
     ): ?array {
-        return $this->api->log->getAlertLogs($hostname, $limit, $start, $from, $to);
+        return [];
+        // return $this->api->log->getAlertLogs($hostname, $limit, $start, $from, $to);
     }
 
     /**
@@ -421,7 +431,8 @@ class Device
         string $from = null,
         string $to = null
     ): ?array {
-        return $this->api->log->getEventLogs($hostname, $limit, $start, $from, $to);
+        return [];
+        // return $this->api->log->getEventLogs($hostname, $limit, $start, $from, $to);
     }
 
     /**

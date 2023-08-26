@@ -16,25 +16,10 @@ use PHPUnit\Framework\TestCase;
  * @copyright   Copyright (c) 2020, Daryl Peterson
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
- * @covers \LibrenmsApiClient\Arp
- * @covers \LibrenmsApiClient\Alert
- * @covers \LibrenmsApiClient\AlertRule
  * @covers \LibrenmsApiClient\ApiClient
- * @covers \LibrenmsApiClient\Component
  * @covers \LibrenmsApiClient\Curl
  * @covers \LibrenmsApiClient\Device
- * @covers \LibrenmsApiClient\DeviceGroup
- * @covers \LibrenmsApiClient\Graph
- * @covers \LibrenmsApiClient\Health
- * @covers \LibrenmsApiClient\Inventory
  * @covers \LibrenmsApiClient\Link
- * @covers \LibrenmsApiClient\Location
- * @covers \LibrenmsApiClient\Log
- * @covers \LibrenmsApiClient\Port
- * @covers \LibrenmsApiClient\Sensor
- * @covers \LibrenmsApiClient\System
- * @covers \LibrenmsApiClient\Vlan
- * @covers \LibrenmsApiClient\Wireless
  */
 class LinkTest extends TestCase
 {
@@ -79,8 +64,8 @@ class LinkTest extends TestCase
         if (!isset($this->api)) {
             global $url,$token;
 
-            $this->api = new ApiClient($url, $token);
-            $this->link = $this->api->link;
+            $api = new ApiClient($url, $token);
+            $this->link = $api->container->get(Link::class);
         }
     }
 }

@@ -15,14 +15,12 @@ use stdClass;
  */
 class Port
 {
-    private ApiClient $api;
     private Curl $curl;
     private string $columns;
 
-    public function __construct(ApiClient $api)
+    public function __construct(Curl $curl)
     {
-        $this->api = $api;
-        $this->curl = $api->curl;
+        $this->curl = $curl;
         $this->columns = 'device_id,port_id,disabled,deleted,ignore,ifName,';
         $this->columns .= 'ifDescr,ifAlias,ifMtu,ifType,ifVlan,ifSpeed,ifOperStatus,';
         $this->columns .= 'ifAdminStatus,ifPhysAddress,ifInErrors,ifOutErrors,poll_time';

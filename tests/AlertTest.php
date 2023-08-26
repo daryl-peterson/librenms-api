@@ -46,7 +46,7 @@ class AlertTest extends TestCase
             return;
         }
         $this->assertIsArray($result);
- 
+
         $record = array_pop($result);
         $result = $alert->get($record->id, $record->state);
         $this->assertIsObject($result);
@@ -151,7 +151,8 @@ class AlertTest extends TestCase
             global $url,$token;
 
             $api = new ApiClient($url, $token);
-            $this->alert = new Alert($api);
+
+            $this->alert = $api->container->get(Alert::class);
         }
     }
 }

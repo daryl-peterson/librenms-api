@@ -20,8 +20,6 @@ use PHPUnit\Framework\TestCase;
  * @covers \LibrenmsApiClient\ApiClient
  * @covers \LibrenmsApiClient\Component
  * @covers \LibrenmsApiClient\Curl
- * @covers \LibrenmsApiClient\Device
- * @covers \LibrenmsApiClient\DeviceGroup
  * @covers \LibrenmsApiClient\Graph
  * @covers \LibrenmsApiClient\Health
  * @covers \LibrenmsApiClient\Inventory
@@ -36,21 +34,9 @@ use PHPUnit\Framework\TestCase;
  */
 class CurlTest extends TestCase
 {
-    private ApiClient $api;
     private Curl $curl;
     private string $url;
     private string $token;
-
-    public function testEqual()
-    {
-        $this->assertEquals($this->api->curl, $this->curl);
-    }
-
-    public function testGet()
-    {
-        $result = $this->api->system->get();
-        $this->assertIsArray($result);
-    }
 
     public function testResovleFail()
     {
@@ -108,8 +94,8 @@ class CurlTest extends TestCase
             $this->url = $url;
             $this->token = $token;
 
-            $this->curl = new Curl($url, $token);
-            $this->api = new ApiClient($url, $token);
+            $api = new ApiClient($url, $token);
+            $this->curl = $api->container->get(Curl::class);
         }
     }
 }

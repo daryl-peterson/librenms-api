@@ -13,14 +13,12 @@ namespace LibrenmsApiClient;
  */
 class Log
 {
-    private ApiClient $api;
     private Curl $curl;
     private array|null $result;
 
-    public function __construct(ApiClient $api)
+    public function __construct(Curl $curl)
     {
-        $this->api = $api;
-        $this->curl = $api->curl;
+        $this->curl = $curl;
     }
 
     /**

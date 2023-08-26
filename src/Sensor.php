@@ -15,19 +15,18 @@ namespace LibrenmsApiClient;
  */
 class Sensor
 {
-    private ApiClient $api;
     private Curl $curl;
-    private string $fileName;
+    private Device $device;
+
     private array $list;
+    public array|null $result;
 
-    public function __construct(ApiClient $api)
+    public function __construct(Curl $curl, Device $device)
     {
-        $this->api = $api;
-        $this->curl = $api->curl;
-
-        $dir = sys_get_temp_dir();
-        $this->fileName = $dir.'/sensor-list.txt';
+        $this->curl = $curl;
+        $this->device = $device;
         $this->list = [];
+        $this->result = [];
     }
 
     /**
@@ -35,45 +34,24 @@ class Sensor
      *
      * @return array|null Array of stdClass Objects
      */
-    public function getListing(bool $force = false): ?array
+    public function getListing(): ?array
     {
-        if (!$force) {
-            if (isset($this->list) & is_array($this->list)) {
-                if (count($this->list) > 0) {
-                    return $this->list;
-                }
-            }
-
-            if (file_exists($this->fileName)) {
-                $mtime = filemtime($this->fileName) + 3600;
-                $ctime = time();
-
-                if ($mtime > $ctime) {
-                    $this->list = (array) unserialize(file_get_contents($this->fileName));
-                }
-
-                if (count($this->list) > 0) {
-                    return $this->list;
-                }
-            }
+        if (count($this->list) > 0) {
+            return $this->list;
         }
-
         $url = $this->curl->getApiUrl('/resources/sensors');
-        $result = $this->curl->get($url);
-        if (!isset($result['sensors'])) {
-            return null;
-        }
+        $this->result = $this->curl->get($url);
 
-        if (0 === count($result['sensors'])) {
+        if (!isset($this->result['sensors']) || (0 === count($this->result['sensors']))) {
+            // @codeCoverageIgnoreStart
             return null;
+            // @codeCoverageIgnoreEnd
         }
 
         $return = [];
-
-        foreach ($result['sensors'] as $sensor) {
+        foreach ($this->result['sensors'] as $sensor) {
             $return[$sensor->device_id][] = $sensor;
         }
-        file_put_contents($this->fileName, serialize($return));
         $this->list = $return;
 
         return $this->list;
@@ -86,21 +64,17 @@ class Sensor
      *
      * @return array|null Array of stdClass Objects
      */
-    public function get(int|string $hostname, bool $force = false): ?array
+    public function get(int|string $hostname): ?array
     {
-        $device = $this->api->device->get($hostname);
-        if (!$device) {
-            return null;
-        }
+        $objDevice = $this->device;
+        $device = $objDevice->get($hostname);
 
-        $sensors = $this->getListing($force);
+        $sensors = $this->getListing();
 
-        if (!isset($sensors[$device->device_id])) {
+        if (!isset($sensors[$device->device_id]) || (0 === count($sensors[$device->device_id]))) {
+            // @codeCoverageIgnoreStart
             return null;
-        }
-
-        if (0 === count($sensors[$device->device_id])) {
-            return null;
+            // @codeCoverageIgnoreEnd
         }
 
         return $sensors[$device->device_id];
@@ -111,14 +85,13 @@ class Sensor
      *
      * @return array|null Array of stdClass Objects
      */
-    public function getByClass(string $class, bool $force = false): ?array
+    public function getByClass(string $class): ?array
     {
-        $sensors = $this->getListing($force);
-
-        print_r($sensors);
-
+        $sensors = $this->getListing();
         if (!isset($sensors)) {
+            // @codeCoverageIgnoreStart
             return null;
+            // @codeCoverageIgnoreEnd
         }
 
         $result = [];
@@ -132,6 +105,9 @@ class Sensor
             }
 
             $result[] = $sensor;
+        }
+        if (!count($result) > 0) {
+            return null;
         }
 
         return $result;

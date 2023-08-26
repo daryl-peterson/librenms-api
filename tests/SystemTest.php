@@ -2,7 +2,7 @@
 
 namespace LibrenmsApiClient\Tests;
 
-use LibrenmsApiClient\Curl;
+use LibrenmsApiClient\ApiClient;
 use LibrenmsApiClient\System;
 use PHPUnit\Framework\TestCase;
 
@@ -13,6 +13,7 @@ use PHPUnit\Framework\TestCase;
  * @copyright   Copyright (c) 2020, Daryl Peterson
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
+ * @covers \LibrenmsApiClient\ApiClient
  * @covers \LibrenmsApiClient\Curl
  * @covers \LibrenmsApiClient\System
  */
@@ -39,9 +40,9 @@ class SystemTest extends TestCase
         if (!isset($this->system)) {
             global $url,$token;
 
-            $curl = new Curl($url, $token);
+            $api = new ApiClient($url, $token);
 
-            $this->system = new System($curl);
+            $this->system = $api->container->get(System::class);
         }
     }
 }

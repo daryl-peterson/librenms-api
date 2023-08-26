@@ -15,41 +15,24 @@ use PHPUnit\Framework\TestCase;
  * @copyright   Copyright (c) 2020, Daryl Peterson
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
- * @covers \LibrenmsApiClient\Arp
- * @covers \LibrenmsApiClient\Alert
- * @covers \LibrenmsApiClient\AlertRule
  * @covers \LibrenmsApiClient\ApiClient
- * @covers \LibrenmsApiClient\Component
  * @covers \LibrenmsApiClient\Curl
- * @covers \LibrenmsApiClient\Device
- * @covers \LibrenmsApiClient\DeviceGroup
- * @covers \LibrenmsApiClient\Graph
- * @covers \LibrenmsApiClient\Health
- * @covers \LibrenmsApiClient\Inventory
- * @covers \LibrenmsApiClient\Link
- * @covers \LibrenmsApiClient\Location
  * @covers \LibrenmsApiClient\Log
- * @covers \LibrenmsApiClient\Port
- * @covers \LibrenmsApiClient\Sensor
- * @covers \LibrenmsApiClient\System
- * @covers \LibrenmsApiClient\Vlan
- * @covers \LibrenmsApiClient\Wireless
  */
 class LogTest extends TestCase
 {
-    private ApiClient $api;
     private Log $log;
 
     public function testGetAlerts()
     {
-        $log = $this->api->log;
+        $log = $this->log;
         $result = $log->getAlertLogs(null, 1);
         $this->assertIsArray($result);
     }
 
     public function testGetAlertLogs()
     {
-        $log = $this->api->log;
+        $log = $this->log;
         $result = $log->getAlertLogs(null, 1);
         if (!isset($result)) {
             return;
@@ -77,21 +60,21 @@ class LogTest extends TestCase
 
     public function testGetEventLogs()
     {
-        $log = $this->api->log;
+        $log = $this->log;
         $result = $log->getEventLogs(null, 1);
         $this->assertIsArray($result);
     }
 
     public function testGetAuthLogs()
     {
-        $log = $this->api->log;
+        $log = $this->log;
         $result = $log->getAuthLogs(null, 1);
         $this->assertIsArray($result);
     }
 
     public function testGetSysLogs()
     {
-        $log = $this->api->log;
+        $log = $this->log;
         $result = $log->getSysLogs(null);
 
         if (is_array($result) || !isset($result)) {
@@ -104,7 +87,7 @@ class LogTest extends TestCase
 
     public function testSyslogSink()
     {
-        $log = $this->api->log;
+        $log = $this->log;
         $data = ['msg' => 'API TEST', 'host' => 'mybrain.com'];
         $result = $log->syslogsink($data);
         $this->assertTrue($result);
@@ -112,10 +95,11 @@ class LogTest extends TestCase
 
     public function setUp(): void
     {
-        if (!isset($this->api)) {
+        if (!isset($this->log)) {
             global $url,$token;
 
-            $this->api = new ApiClient($url, $token);
+            $api = new ApiClient($url, $token);
+            $this->log = $api->container->get(Log::class);
         }
     }
 }

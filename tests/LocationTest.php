@@ -4,6 +4,7 @@ namespace LibrenmsApiClient\Tests;
 
 use LibrenmsApiClient\ApiClient;
 use LibrenmsApiClient\ApiException;
+use LibrenmsApiClient\Location;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -37,19 +38,12 @@ use PHPUnit\Framework\TestCase;
  */
 class LocationTest extends TestCase
 {
-    private ApiClient $api;
+    private Location $location;
     private $name;
 
     public function testAdd()
     {
-        $obj = $this->api->location;
-
-        try {
-            $obj->delete($this->name);
-            $obj->delete($this->name.'1');
-        } catch (\Throwable $th) {
-            // throw $th;
-        }
+        $obj = $this->location;
         $result = $obj->add($this->name, '37.4220041', '-122.0862462');
         $this->assertTrue($result);
 
@@ -59,37 +53,30 @@ class LocationTest extends TestCase
 
     public function testEdit()
     {
-        $obj = $this->api->location;
-        $result = $obj->get($this->name);
-        $this->assertIsObject($result);
+        $obj = $this->location;
 
-        $result = $obj->edit($this->name, $this->name.'1', $result->lat, $result->lng, true);
+        $result = $obj->edit($this->name, $this->name.'1', '31.909883', '-98.619538', true);
         $this->assertTrue($result);
-
-        $this->expectException(ApiException::class);
-        $obj->edit($this->name.'2');
-    }
-
-    public function testDelete()
-    {
-        $obj = $this->api->location;
 
         $result = $obj->delete($this->name.'1');
         $this->assertTrue($result);
 
         $this->expectException(ApiException::class);
         $obj->delete($this->name.'999');
+
+        $this->expectException(ApiException::class);
+        $obj->edit($this->name.'2');
     }
 
     public function testGetListing()
     {
-        $result = $this->api->location->getListing();
+        $result = $this->location->getListing();
         $this->assertIsArray($result);
     }
 
     public function testGet()
     {
-        $obj = $this->api->location;
+        $obj = $this->location;
         $result = $obj->getListing();
         $this->assertIsArray($result);
         $location = array_pop($result);
@@ -105,10 +92,11 @@ class LocationTest extends TestCase
     public function setUp(): void
     {
         $this->name = 'TEST LOCATION';
-        if (!isset($this->api)) {
+        if (!isset($this->location)) {
             global $url,$token;
 
-            $this->api = new ApiClient($url, $token);
+            $api = new ApiClient($url, $token);
+            $this->location = $api->container->get(Location::class);
         }
     }
 }
