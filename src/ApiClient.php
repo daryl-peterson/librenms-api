@@ -43,19 +43,10 @@ class ApiClient
                 Arp::class => \DI\autowire(Arp::class)
                     ->constructor(\DI\get(Curl::class)),
 
-                Device::class => \DI\autowire(Device::class)
-                    ->constructor(\DI\get(Curl::class)),
-
-                Sensor::class => \DI\autowire(Sensor::class)
-                    ->constructor(\DI\get(Curl::class), \DI\get(Device::class)),
-
                 System::class => \DI\autowire(System::class)
                     ->constructor(\DI\get(Curl::class)),
 
                 Component::class => \DI\autowire(Component::class)
-                    ->constructor(\DI\get(Curl::class)),
-
-                Port::class => \DI\autowire(Port::class)
                     ->constructor(\DI\get(Curl::class)),
 
                 Link::class => \DI\autowire(Link::class)
@@ -70,15 +61,27 @@ class ApiClient
                 Vlan::class => \DI\autowire(Vlan::class)
                     ->constructor(\DI\get(Curl::class)),
 
+                Device::class => \DI\autowire(Device::class)
+                    ->constructor(\DI\get(Curl::class)),
+
+                Port::class => \DI\autowire(Port::class)
+                    ->constructor(\DI\get(Curl::class)),
+
+                Sensor::class => \DI\autowire(Sensor::class)
+                    ->constructor(\DI\get(Curl::class)),
+
                 Graph::class => \DI\autowire(Graph::class)
-                    ->constructor(\DI\get(Curl::class), \DI\get(Device::class), \DI\get(Port::class)),
+                    ->constructor(\DI\get(Curl::class)),
             ]
         );
         $this->container = $builder->build();
     }
 
-    public function getContainer()
+    /**
+     * Get class object.
+     */
+    public function get(string $class): mixed
     {
-        return $this->container;
+        return $this->container->get($class);
     }
 }

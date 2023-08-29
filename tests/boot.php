@@ -17,8 +17,17 @@ $dir = dirname(__FILE__);
 if (file_exists($dir.'/config.php')) {
     require_once $dir.'/config.php';
 } else {
-    global $url, $token;
+    global $url, $token, $settings;
 
-    $url = readline('Enter URL : ');
-    $token = readline('Enter Token : ');
+    $url = readline('URL       : ');
+    $token = readline('TOKEN     : ');
+    $device_id = readline('DEVICE ID : ');
+    $hostname = readline('HOSTNAME  : ');
+
+    $settings = [
+        'url' => $url,
+        'token' => $token,
+        'device_id' => $device_id,
+        'device_hostname' => $hostname,
+    ];
 }

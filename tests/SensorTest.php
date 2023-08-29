@@ -3,8 +3,6 @@
 namespace LibrenmsApiClient\Tests;
 
 use LibrenmsApiClient\ApiClient;
-use LibrenmsApiClient\ApiException;
-use LibrenmsApiClient\Device;
 use LibrenmsApiClient\Sensor;
 use PHPUnit\Framework\TestCase;
 
@@ -18,14 +16,15 @@ use PHPUnit\Framework\TestCase;
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
  * @covers \LibrenmsApiClient\ApiClient
+ * @covers \LibrenmsApiClient\Cache
  * @covers \LibrenmsApiClient\Sensor
  * @covers \LibrenmsApiClient\Curl
- * @covers \LibrenmsApiClient\Device
+ * @covers \LibrenmsApiClient\Common
  */
 class SensorTest extends TestCase
 {
     private Sensor $sensor;
-    private Device $device;
+    private int $deviceId;
 
     public function testGetListing()
     {
@@ -38,15 +37,13 @@ class SensorTest extends TestCase
     {
         $obj = $this->sensor;
 
-        $devices = $this->device->getListing();
-        $this->assertIsArray($devices);
-        $device = array_pop($devices);
+        $device = $obj->getDevice($this->deviceId);
+        $this->assertIsObject($device);
 
         $result = $obj->get($device->device_id);
         $this->assertIsArray($result);
-
-        $this->expectException(ApiException::class);
-        $obj->get('NO SUCH DEVICE');
+        $result = $obj->get('NO SUCH DEVICE');
+        $this->assertNull($result);
     }
 
     public function testGetByClass()
@@ -62,11 +59,11 @@ class SensorTest extends TestCase
     public function setUp(): void
     {
         if (!isset($this->sensor)) {
-            global $url,$token;
+            global $settings;
 
-            $api = new ApiClient($url, $token);
-            $this->device = $api->container->get(Device::class);
-            $this->sensor = $api->container->get(Sensor::class);
+            $api = new ApiClient($settings['url'], $settings['token']);
+            $this->sensor = $api->get(Sensor::class);
+            $this->deviceId = $settings['device_id'];
         }
     }
 }

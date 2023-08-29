@@ -20,6 +20,7 @@ use PHPUnit\Framework\TestCase;
  * @covers \LibrenmsApiClient\Curl
  * @covers \LibrenmsApiClient\Device
  * @covers \LibrenmsApiClient\Link
+ * @covers \LibrenmsApiClient\Common
  */
 class LinkTest extends TestCase
 {
@@ -45,11 +46,11 @@ class LinkTest extends TestCase
         $result = $link->getListing();
         $object = array_pop($result);
 
-        $result = $link->getByHost($object->local_device_id);
+        $result = $link->getDeviceLinks($object->local_device_id);
         $this->assertIsArray($result);
 
-        $this->expectException(ApiException::class);
-        $result = $link->getByHost(0);
+        $result = $link->getDeviceLinks(0);
+        $this->assertFalse($result);
     }
 
     public function testGetListing()
@@ -62,10 +63,10 @@ class LinkTest extends TestCase
     public function setUp(): void
     {
         if (!isset($this->api)) {
-            global $url,$token;
+            global $settings;
 
-            $api = new ApiClient($url, $token);
-            $this->link = $api->container->get(Link::class);
+            $api = new ApiClient($settings['url'], $settings['token']);
+            $this->link = $api->get(Link::class);
         }
     }
 }

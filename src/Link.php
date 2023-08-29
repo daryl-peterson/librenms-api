@@ -13,9 +13,9 @@ use stdClass;
  *
  * @since       0.0.2
  */
-class Link
+class Link extends Common
 {
-    private Curl $curl;
+    protected Curl $curl;
     public array|null $result;
 
     public function __construct(Curl $curl)
@@ -64,28 +64,5 @@ class Link
         }
 
         return $this->result['link'][0];
-    }
-
-    /**
-     * Get device links. CDP, LLDP.
-     *
-     * @param int|string $hostname Hostname can be either the device hostname or id
-     *
-     * @return array|false Array of stdClass Objects
-     *
-     * @see https://docs.librenms.org/API/Switching/#get_links
-     */
-    public function getByHost(int|string $hostname): false|array
-    {
-        $url = $this->curl->getApiUrl("/devices/$hostname/links");
-        $this->result = $this->curl->get($url);
-
-        if (!isset($this->result['links']) || (0 === count($this->result['links']))) {
-            // @codeCoverageIgnoreStart
-            return false;
-            // @codeCoverageIgnoreEnd
-        }
-
-        return $this->result['links'];
     }
 }

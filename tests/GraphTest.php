@@ -3,8 +3,6 @@
 namespace LibrenmsApiClient\Tests;
 
 use LibrenmsApiClient\ApiClient;
-use LibrenmsApiClient\ApiException;
-use LibrenmsApiClient\Device;
 use LibrenmsApiClient\Graph;
 use PHPUnit\Framework\TestCase;
 
@@ -18,45 +16,61 @@ use PHPUnit\Framework\TestCase;
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
  * @covers \LibrenmsApiClient\ApiClient
- * @covers \LibrenmsApiClient\Device
+ * @covers \LibrenmsApiClient\Cache
  * @covers \LibrenmsApiClient\Graph
  * @covers \LibrenmsApiClient\Curl
- * @covers \LibrenmsApiClient\Port
+ * @covers \LibrenmsApiClient\Common
  */
 class GraphTest extends TestCase
 {
     private Graph $graph;
-    private Device $device;
+    private int $deviceId;
 
-    public function test()
+    public function testGetPort()
     {
         $graph = $this->graph;
 
-        $devices = $this->device->getListing();
-        $device = array_pop($devices);
+        $device = $graph->getDevice($this->deviceId);
+        $this->assertIsObject($device);
 
-        $result = $graph->getPort($device->device_id);
+        $result = $graph->getPort($this->deviceId);
         $this->assertIsArray($result);
 
-        $result = $graph->getTypes($device->device_id);
+        $result = $graph->getPort(0);
+        $this->assertNull($result);
+
+        $result = $graph->getPort($this->deviceId, ['lo0']);
+        $this->assertNull($result);
+    }
+
+    public function testGetByType()
+    {
+        $graph = $this->graph;
+
+        $result = $graph->getTypes($this->deviceId);
         $this->assertIsArray($result);
         $type = array_pop($result);
 
-        $result = $graph->getByType($device->device_id, $type->name);
+        $result = $graph->getByType($this->deviceId, $type->name);
         $this->assertIsArray($result);
 
-        $this->expectException(ApiException::class);
-        $result = $graph->getByType(-1, $type->name);
+        $result = $graph->getByType(0, $type->name);
+        $this->assertNull($result);
+
+        $from = date('m/d/Y 00:00');
+        $to = date('m/d/Y 12:00');
+        $result = $graph->getByType($this->deviceId, $type->name, $from, $to, 'display');
+        $this->assertIsArray($result);
     }
 
     public function setUp(): void
     {
         if (!isset($this->graph)) {
-            global $url,$token;
+            global $settings;
 
-            $api = new ApiClient($url, $token);
-            $this->device = $api->container->get(Device::class);
-            $this->graph = $api->container->get(Graph::class);
+            $api = new ApiClient($settings['url'], $settings['token']);
+            $this->graph = $api->get(Graph::class);
+            $this->deviceId = $settings['device_id'];
         }
     }
 }

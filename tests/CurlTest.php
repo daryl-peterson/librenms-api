@@ -14,23 +14,8 @@ use PHPUnit\Framework\TestCase;
  * @copyright   Copyright (c) 2020, Daryl Peterson
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
- * @covers \LibrenmsApiClient\Arp
- * @covers \LibrenmsApiClient\Alert
- * @covers \LibrenmsApiClient\AlertRule
  * @covers \LibrenmsApiClient\ApiClient
- * @covers \LibrenmsApiClient\Component
  * @covers \LibrenmsApiClient\Curl
- * @covers \LibrenmsApiClient\Graph
- * @covers \LibrenmsApiClient\Health
- * @covers \LibrenmsApiClient\Inventory
- * @covers \LibrenmsApiClient\Link
- * @covers \LibrenmsApiClient\Location
- * @covers \LibrenmsApiClient\Log
- * @covers \LibrenmsApiClient\Port
- * @covers \LibrenmsApiClient\Sensor
- * @covers \LibrenmsApiClient\System
- * @covers \LibrenmsApiClient\Vlan
- * @covers \LibrenmsApiClient\Wireless
  */
 class CurlTest extends TestCase
 {
@@ -90,12 +75,13 @@ class CurlTest extends TestCase
     public function setUp(): void
     {
         if (!isset($this->curl)) {
-            global $url,$token;
-            $this->url = $url;
-            $this->token = $token;
+            global $settings;
 
-            $api = new ApiClient($url, $token);
-            $this->curl = $api->container->get(Curl::class);
+            $api = new ApiClient($settings['url'], $settings['token']);
+
+            $this->url = $settings['url'];
+            $this->token = $settings['token'];
+            $this->curl = $api->get(Curl::class);
         }
     }
 }

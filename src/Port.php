@@ -13,10 +13,11 @@ use stdClass;
  *
  * @since       0.0.1
  */
-class Port
+class Port extends Common
 {
-    private Curl $curl;
+    protected Curl $curl;
     private string $columns;
+    public array|null $result;
 
     public function __construct(Curl $curl)
     {
@@ -34,13 +35,13 @@ class Port
     public function get(int $id): ?\stdClass
     {
         $url = $this->curl->getApiUrl("/ports/$id");
-        $result = $this->curl->get($url);
+        $this->result = $this->curl->get($url);
 
-        if (!isset($result['port'][0])) {
+        if (!isset($this->result['port'][0])) {
             return null;
         }
 
-        return $result['port'][0];
+        return $this->result['port'][0];
     }
 
     /**
@@ -60,13 +61,13 @@ class Port
 
         $columns = urlencode($columns);
         $url = $this->curl->getApiUrl('/ports?columns='.$columns);
-        $result = $this->curl->get($url);
+        $this->result = $this->curl->get($url);
 
-        if (!isset($result['ports'])) {
+        if (!isset($this->result['ports'])) {
             return null;
         }
 
-        return $result['ports'];
+        return $this->result['ports'];
     }
 
     /**
@@ -78,11 +79,15 @@ class Port
      */
     public function setNotes(int|string $hostname, int $port_id, string $note)
     {
-        $url = $this->curl->getApiUrl("/devices/$hostname/port/$port_id");
-        $result = $this->curl->patch($url, ['notes' => $note]);
-        print_r($result);
+        $device = $this->getDevice($hostname);
+        if (!isset($device)) {
+            return null;
+        }
+        $url = $this->curl->getApiUrl("/devices/$device->device_id/port/$port_id");
+        $this->result = $this->curl->patch($url, ['notes' => $note]);
+        print_r($this->result);
 
-        return $result;
+        return $this->result;
     }
 
     /**
@@ -96,23 +101,7 @@ class Port
      */
     public function getByDevice(int|string $hostname, string $columns = null): ?array
     {
-        if (!isset($columns)) {
-            $columns = $this->columns;
-        }
-
-        $columns = urlencode($columns);
-        $url = $this->curl->getApiUrl("/devices/$hostname/ports?columns=".$columns);
-        $result = $this->curl->get($url);
-
-        if (!isset($result['ports'])) {
-            return null;
-        }
-
-        if (0 === count($result['ports'])) {
-            return null;
-        }
-
-        return $result['ports'];
+        return $this->getDevicePorts($hostname, $columns);
     }
 
     /**
@@ -130,12 +119,12 @@ class Port
         if (isset($filter)) {
             $url .= '?filter='.$filter;
         }
-        $result = $this->curl->get($url);
-        if (!isset($result['ports'])) {
+        $this->result = $this->curl->get($url);
+        if (!isset($this->result['ports'])) {
             return null;
         }
 
-        return $result['ports'];
+        return $this->result['ports'];
     }
 
     /**
@@ -145,15 +134,20 @@ class Port
      */
     public function getStats(int|string $hostname, string $ifname): ?\stdClass
     {
-        $ifname = urlencode($ifname);
-        $url = $this->curl->getApiUrl("/devices/$hostname/ports/$ifname");
-        $result = $this->curl->get($url);
-
-        if (!isset($result['port'])) {
+        $device = $this->getDevice($hostname);
+        if (!isset($device)) {
             return null;
         }
 
-        return $result['port'];
+        $ifname = urlencode($ifname);
+        $url = $this->curl->getApiUrl("/devices/$device->device_id/ports/$ifname");
+        $this->result = $this->curl->get($url);
+
+        if (!isset($this->result['port'])) {
+            return null;
+        }
+
+        return $this->result['port'];
     }
 
     /**
@@ -166,16 +160,16 @@ class Port
     public function getIpInfo(int $port_id): ?array
     {
         $url = $this->curl->getApiUrl("/ports/$port_id/ip");
-        $result = $this->curl->get($url);
+        $this->result = $this->curl->get($url);
 
-        if (!isset($result['addresses'])) {
+        if (!isset($this->result['addresses'])) {
             return null;
         }
-        if (!count($result['addresses']) > 0) {
+        if (!count($this->result['addresses']) > 0) {
             return null;
         }
 
-        return $result['addresses'];
+        return $this->result['addresses'];
     }
 
     /**
@@ -196,9 +190,9 @@ class Port
         $columns = urlencode($columns);
 
         $url = $this->curl->getApiUrl("/ports/search/$search?columns=$columns");
-        $result = $this->curl->get($url);
+        $this->result = $this->curl->get($url);
 
-        return $result;
+        return $this->result;
     }
 
     /**
@@ -223,15 +217,15 @@ class Port
         }
         $columns = urlencode($columns);
         $url = $this->curl->getApiUrl("/ports/search/$fields/$search?columns=$columns");
-        $result = $this->curl->get($url);
+        $this->result = $this->curl->get($url);
 
-        if (!isset($result['ports'])) {
+        if (!isset($this->result['ports'])) {
             return null;
         }
-        if (!count($result['ports']) > 0) {
+        if (!count($this->result['ports']) > 0) {
             return null;
         }
 
-        return $result['ports'];
+        return $this->result['ports'];
     }
 }

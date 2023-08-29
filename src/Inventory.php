@@ -16,7 +16,7 @@ namespace LibrenmsApiClient;
 class Inventory
 {
     private ApiClient $api;
-    private Curl $curl;
+    protected Curl $curl;
 
     public function __construct(ApiClient $api)
     {

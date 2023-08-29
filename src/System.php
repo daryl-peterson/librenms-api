@@ -15,7 +15,7 @@ namespace LibrenmsApiClient;
  */
 class System
 {
-    private Curl $curl;
+    protected Curl $curl;
     public array|null $result;
 
     public function __construct(Curl $curl)

@@ -11,9 +11,9 @@ namespace LibrenmsApiClient;
  *
  * @since       0.0.2
  */
-class Health
+class Health extends Common
 {
-    private Curl $curl;
+    protected Curl $curl;
 
     public function __construct(Curl $curl)
     {
@@ -71,9 +71,13 @@ class Health
      *
      * @see https://docs.librenms.org/API/Devices/#get_health_graph
      */
-    public function getGraph(int|string $hostname, string $type, int $sensor_id = null)
+    public function getGraph(int|string $hostname, string $type, int $sensor_id = null): ?array
     {
-        $url = $this->curl->getApiUrl("/devices/$hostname/graphs/health");
+        $device = $this->getDevice($hostname);
+        if (!isset($device)) {
+            return null;
+        }
+        $url = $this->curl->getApiUrl("/devices/$device->device_id/graphs/health");
 
         if (isset($type)) {
             $url .= "/$type";
@@ -123,7 +127,12 @@ class Health
      */
     private function getHealth(int|string $hostname, string $type = null, string $sensor_id = null): ?array
     {
-        $url = $this->curl->getApiUrl("/devices/$hostname/health");
+        $device = $this->getDevice($hostname);
+        if (!isset($device)) {
+            return null;
+        }
+
+        $url = $this->curl->getApiUrl("/devices/$device->device_id/health");
 
         if (isset($type)) {
             $url .= "/$type";

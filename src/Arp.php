@@ -13,7 +13,7 @@ namespace LibrenmsApiClient;
  */
 class Arp
 {
-    private Curl $curl;
+    protected Curl $curl;
 
     public function __construct(Curl $curl)
     {

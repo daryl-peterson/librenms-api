@@ -2,9 +2,8 @@
 
 namespace LibrenmsApiClient\Tests;
 
+use LibrenmsApiClient\ApiClient;
 use LibrenmsApiClient\Component;
-use LibrenmsApiClient\Curl;
-use LibrenmsApiClient\Device;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -14,21 +13,21 @@ use PHPUnit\Framework\TestCase;
  * @copyright   Copyright (c) 2020, Daryl Peterson
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
+ * @covers \LibrenmsApiClient\ApiClient
  * @covers \LibrenmsApiClient\Component
  * @covers \LibrenmsApiClient\Curl
- * @covers \LibrenmsApiClient\Device
+ * @covers \LibrenmsApiClient\Common
  */
 class ComponentTest extends TestCase
 {
     private Component $component;
-    private Device $device;
+    private int $deviceId;
 
     public function testAddGetEditDelete()
     {
         $comp = $this->component;
 
-        $devices = $this->device->getListing();
-        $device = array_pop($devices);
+        $device = $comp->getDevice($this->deviceId);
         $this->assertIsObject($device);
 
         $resultOrg = $comp->add($device->device_id, 'API TEST');
@@ -60,10 +59,11 @@ class ComponentTest extends TestCase
     public function setUp(): void
     {
         if (!isset($this->component)) {
-            global $url,$token;
-            $curl = new Curl($url, $token);
-            $this->device = new Device($curl);
-            $this->component = new Component($curl);
+            global $settings;
+
+            $api = new ApiClient($settings['url'], $settings['token']);
+            $this->component = $api->get(Component::class);
+            $this->deviceId = $settings['device_id'];
         }
     }
 }

@@ -2,8 +2,8 @@
 
 namespace LibrenmsApiClient\Tests;
 
+use LibrenmsApiClient\ApiClient;
 use LibrenmsApiClient\Arp;
-use LibrenmsApiClient\Curl;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -15,6 +15,7 @@ use PHPUnit\Framework\TestCase;
  * @copyright   Copyright (c) 2020, Daryl Peterson
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
+ * @covers \LibrenmsApiClient\ApiClient
  * @covers \LibrenmsApiClient\Arp
  * @covers \LibrenmsApiClient\Curl
  */
@@ -35,10 +36,10 @@ class ArpTest extends TestCase
     public function setUp(): void
     {
         if (!isset($this->arp)) {
-            global $url,$token;
+            global $settings;
 
-            $curl = new Curl($url, $token);
-            $this->arp = new Arp($curl);
+            $api = new ApiClient($settings['url'], $settings['token']);
+            $this->arp = $api->get(Arp::class);
         }
     }
 }

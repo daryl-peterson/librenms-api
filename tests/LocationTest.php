@@ -93,10 +93,10 @@ class LocationTest extends TestCase
     {
         $this->name = 'TEST LOCATION';
         if (!isset($this->location)) {
-            global $url,$token;
+            global $settings;
 
-            $api = new ApiClient($url, $token);
-            $this->location = $api->container->get(Location::class);
+            $api = new ApiClient($settings['url'], $settings['token']);
+            $this->location = $api->get(Location::class);
         }
     }
 }

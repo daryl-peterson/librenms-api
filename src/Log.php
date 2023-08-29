@@ -11,9 +11,9 @@ namespace LibrenmsApiClient;
  *
  * @since       0.0.1
  */
-class Log
+class Log extends Common
 {
-    private Curl $curl;
+    protected Curl $curl;
     private array|null $result;
 
     public function __construct(Curl $curl)
@@ -153,7 +153,11 @@ class Log
         $params = [];
         $suffix = '';
         if (isset($hostname)) {
-            $url .= "/$hostname";
+            $device = $this->getDevice($hostname);
+            if (!isset($device)) {
+                return null;
+            }
+            $url .= "/$device->device_id";
         }
 
         if (isset($limit)) {

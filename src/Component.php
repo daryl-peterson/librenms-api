@@ -11,9 +11,9 @@ namespace LibrenmsApiClient;
  *
  * @since       0.0.1
  */
-class Component
+class Component extends Common
 {
-    private Curl $curl;
+    protected Curl $curl;
     public array|null $result;
 
     public function __construct(Curl $curl)

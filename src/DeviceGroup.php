@@ -13,7 +13,7 @@ namespace LibrenmsApiClient;
  */
 class DeviceGroup
 {
-    private Curl $curl;
+    protected Curl $curl;
 
     public function __construct(Curl $curl)
     {

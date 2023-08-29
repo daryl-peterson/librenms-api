@@ -2,8 +2,8 @@
 
 namespace LibrenmsApiClient\Tests;
 
+use LibrenmsApiClient\ApiClient;
 use LibrenmsApiClient\ApiException;
-use LibrenmsApiClient\Curl;
 use LibrenmsApiClient\DeviceGroup;
 use PHPUnit\Framework\TestCase;
 
@@ -14,6 +14,7 @@ use PHPUnit\Framework\TestCase;
  * @copyright   Copyright (c) 2020, Daryl Peterson
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
+ * @covers \LibrenmsApiClient\ApiClient
  * @covers \LibrenmsApiClient\Curl
  * @covers \LibrenmsApiClient\DeviceGroup
  */
@@ -43,11 +44,11 @@ class DeviceGroupTest extends TestCase
     public function setUp(): void
     {
         if (!isset($this->group)) {
-            global $url,$token;
+            global $settings;
 
-            $curl = new Curl($url, $token);
+            $api = new ApiClient($settings['url'], $settings['token']);
             $this->name = 'TEST RULE';
-            $this->group = new DeviceGroup($curl);
+            $this->group = $api->get(DeviceGroup::class);
         }
     }
 }

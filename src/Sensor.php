@@ -13,18 +13,15 @@ namespace LibrenmsApiClient;
  *
  * @since       0.0.1
  */
-class Sensor
+class Sensor extends Common
 {
-    private Curl $curl;
-    private Device $device;
-
+    protected Curl $curl;
     private array $list;
     public array|null $result;
 
-    public function __construct(Curl $curl, Device $device)
+    public function __construct(Curl $curl)
     {
         $this->curl = $curl;
-        $this->device = $device;
         $this->list = [];
         $this->result = [];
     }
@@ -66,8 +63,10 @@ class Sensor
      */
     public function get(int|string $hostname): ?array
     {
-        $objDevice = $this->device;
-        $device = $objDevice->get($hostname);
+        $device = $this->getDevice($hostname);
+        if (!isset($device)) {
+            return null;
+        }
 
         $sensors = $this->getListing();
 

@@ -18,6 +18,7 @@ use PHPUnit\Framework\TestCase;
  * @covers \LibrenmsApiClient\ApiClient
  * @covers \LibrenmsApiClient\Curl
  * @covers \LibrenmsApiClient\Log
+ * @covers \LibrenmsApiClient\Common
  */
 class LogTest extends TestCase
 {
@@ -96,10 +97,10 @@ class LogTest extends TestCase
     public function setUp(): void
     {
         if (!isset($this->log)) {
-            global $url,$token;
+            global $settings;
 
-            $api = new ApiClient($url, $token);
-            $this->log = $api->container->get(Log::class);
+            $api = new ApiClient($settings['url'], $settings['token']);
+            $this->log = $api->get(Log::class);
         }
     }
 }

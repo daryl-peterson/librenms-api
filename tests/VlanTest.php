@@ -2,8 +2,8 @@
 
 namespace LibrenmsApiClient\Tests;
 
+use LibrenmsApiClient\ApiClient;
 use LibrenmsApiClient\ApiException;
-use LibrenmsApiClient\Curl;
 use LibrenmsApiClient\Vlan;
 use PHPUnit\Framework\TestCase;
 
@@ -14,6 +14,7 @@ use PHPUnit\Framework\TestCase;
  * @copyright   Copyright (c) 2020, Daryl Peterson
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
+ * @covers \LibrenmsApiClient\ApiClient
  * @covers \LibrenmsApiClient\Curl
  * @covers \LibrenmsApiClient\Vlan
  */
@@ -39,11 +40,10 @@ class VlanTest extends TestCase
     public function setUp(): void
     {
         if (!isset($this->vlan)) {
-            global $url,$token;
+            global $settings;
 
-            $curl = new Curl($url, $token);
-
-            $this->vlan = new Vlan($curl);
+            $api = new ApiClient($settings['url'], $settings['token']);
+            $this->vlan = $api->get(Vlan::class);
         }
     }
 }

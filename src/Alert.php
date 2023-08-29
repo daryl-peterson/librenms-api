@@ -21,7 +21,7 @@ class Alert
 
     public AlertRule $rule;
     public array|null $result;
-    private Curl $curl;
+    protected Curl $curl;
 
     public function __construct(Curl $curl)
     {

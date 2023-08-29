@@ -148,11 +148,10 @@ class AlertTest extends TestCase
     public function setUp(): void
     {
         if (!isset($this->alert)) {
-            global $url,$token;
+            global $settings;
 
-            $api = new ApiClient($url, $token);
-
-            $this->alert = $api->container->get(Alert::class);
+            $api = new ApiClient($settings['url'], $settings['token']);
+            $this->alert = $api->get(Alert::class);
         }
     }
 }
