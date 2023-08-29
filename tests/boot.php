@@ -21,13 +21,19 @@ if (file_exists($dir.'/config.php')) {
 
     $url = readline('URL       : ');
     $token = readline('TOKEN     : ');
-    $device_id = readline('DEVICE ID : ');
-    $hostname = readline('HOSTNAME  : ');
+    $router_id = readline('ROUTER ID : ');
+    $router_hostname = readline('ROUTER HOSTNAME  : ');
+    $switch_id = readline('SWITCH ID  : ');
+    $test_add_ip = readline('TEST ADD IP (MUST BE PINGABLE) : ');
+    $test_add_gw = readline('TEST ADD GATEWAY (MUST BE PINGABLE) : ');
 
     $settings = [
         'url' => $url,
         'token' => $token,
-        'device_id' => $device_id,
-        'device_hostname' => $hostname,
+        'router_id' => $router_id,
+        'router_hostname' => $router_hostname,
+        'switch_id' => $switch_id,
+        'test_add_ip' => $test_add_ip,
+        'test_add_gw' => $test_add_gw,
     ];
 }

@@ -75,7 +75,7 @@ class Device extends Common
      *
      * @see https://docs.librenms.org/API/Devices/#add_device
      */
-    public function add(array $device): array
+    public function add(array $device): ?\stdClass
     {
         $snmpVersions = ['v1', 'v2c', 'v3'];
 
@@ -105,7 +105,7 @@ class Device extends Common
             }
         }
 
-        if (isset($device['snmp_disable']) && (1 === $device['snmp_disable'])) {
+        if (isset($device['snmp_disable']) && $device['snmp_disable']) {
             foreach ($icmpOnly as $keyName) {
                 unset($device[$keyName]);
             }
@@ -113,13 +113,13 @@ class Device extends Common
 
         $url = $this->curl->getApiUrl('/devices');
         $this->result = $this->curl->post($url, $device);
-        if (!isset($this->result['devices']) || !is_array($this->result['devices'])) {
+        if (!isset($this->result['devices'][0]) || !is_object($this->result['devices'][0])) {
             // @codeCoverageIgnoreStart
             return null;
             // @codeCoverageIgnoreEnd
         }
 
-        return $this->result['devices'];
+        return $this->result['devices'][0];
     }
 
     /**
@@ -151,7 +151,7 @@ class Device extends Common
         $url = $this->curl->getApiUrl("/devices/$device->device_id/fdb");
         $this->result = $this->curl->get($url);
 
-        if (!isset($this->result['ports_fdb']) || !count($this->result['ports_fdb']) > 0) {
+        if (!isset($this->result['ports_fdb']) || 0 === count($this->result['ports_fdb'])) {
             return null;
         }
 
@@ -174,19 +174,12 @@ class Device extends Common
         $url = $this->curl->getApiUrl("/devices/$device->device_id");
         $this->result = $this->curl->delete($url);
         if (!isset($this->result['devices'])) {
+            // @codeCoverageIgnoreStart
             return null;
+            // @codeCoverageIgnoreEnd
         }
 
         return $this->result['devices'];
-    }
-
-    /**
-     * Get device sensors.
-     */
-    public function getSensors(int|string $hostname): ?array
-    {
-        return [];
-        // return $this->api->sensor->get($hostname);
     }
 
     /**
@@ -216,32 +209,6 @@ class Device extends Common
     public function getByIpV4(string $address): ?array
     {
         return $this->getDeviceBy('ipv4', $address);
-    }
-
-    /**
-     * Check if the device supports SNMP.
-     *
-     * @param int|string $hostname Hostname can be either the device hostname or id
-     */
-    public function hasSNMP(int|string $hostname): bool
-    {
-        $device = $this->get($hostname);
-        if (!isset($device) || (1 === $device->snmp_disable)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Check if the device has wireless.
-     *
-     * @param int|string $hostname Hostname can be either the device hostname or id
-     */
-    public function hasWireless(int|string $hostname): bool
-    {
-        return false;
-        // return $this->api->wireless->hasWireless($hostname);
     }
 
     /**
@@ -315,6 +282,11 @@ class Device extends Common
         string $notes = null,
         string $start = null
     ): bool {
+        $device = $this->getDevice($hostname);
+        if (!isset($device)) {
+            return false;
+        }
+
         $data['duration'] = $duration;
 
         if (isset($title)) {
@@ -327,15 +299,42 @@ class Device extends Common
             $data['start'] = $start;
         }
 
-        $url = $this->curl->getApiUrl("/devices/$hostname/maintenance");
-
+        $url = $this->curl->getApiUrl("/devices/$device->device_id/maintenance");
         $this->result = $this->curl->post($url, $data);
 
-        if (!isset($this->result['result']) || !isset($this->result['code'])) {
+        if (!isset($this->result['code']) || ($this->result['code'] > 299)) {
             return false;
         }
 
-        if (200 !== $this->result['code']) {
+        return true;
+    }
+
+    /**
+     * Update device.
+     *
+     * @param int|string $hostname Hostname can be either the device hostname or id
+     *
+     * @see https://docs.librenms.org/API/Devices/#update_device_field
+     */
+    public function update(int|string $hostname, string $field, mixed $value): bool
+    {
+        $device = $this->getDevice($hostname);
+        if (!isset($device)) {
+            return false;
+        }
+        $data['field'] = $field;
+        $data['data'] = $value;
+        $url = $this->curl->getApiUrl("/devices/$device->device_id");
+        $this->result = $this->curl->patch($url, $data);
+
+        if (!isset($this->result['code']) || ($this->result['code'] > 299)) {
+            // @codeCoverageIgnoreStart
+            return false;
+            // @codeCoverageIgnoreEnd
+        }
+
+        $device = $this->getDevice($hostname);
+        if (!property_exists($device, $field) || ($device->$field !== $value)) {
             return false;
         }
 
@@ -406,14 +405,20 @@ class Device extends Common
      */
     public function rename(int|string $hostname, string $new_name): bool
     {
-        $url = $this->curl->getApiUrl("/devices/$hostname/rename/$new_name");
-        $this->result = $this->curl->patch($url);
-
-        if (!isset($this->result['code'])) {
+        $device = $this->getDevice($hostname);
+        if (!isset($device)) {
             return false;
         }
-        if (200 !== $this->result['code']) {
+
+        $new_name = urlencode($new_name);
+        $url = $this->curl->getApiUrl("/devices/$device->device_id/rename/$new_name");
+
+        $this->result = $this->curl->patch($url);
+
+        if (!isset($this->result['code']) || ($this->result['code'] > 299)) {
+            // @codeCoverageIgnoreStart
             return false;
+            // @codeCoverageIgnoreEnd
         }
 
         return true;

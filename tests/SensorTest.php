@@ -24,7 +24,7 @@ use PHPUnit\Framework\TestCase;
 class SensorTest extends TestCase
 {
     private Sensor $sensor;
-    private int $deviceId;
+    private int $router_id;
 
     public function testGetListing()
     {
@@ -37,7 +37,7 @@ class SensorTest extends TestCase
     {
         $obj = $this->sensor;
 
-        $device = $obj->getDevice($this->deviceId);
+        $device = $obj->getDevice($this->router_id);
         $this->assertIsObject($device);
 
         $result = $obj->get($device->device_id);
@@ -63,7 +63,7 @@ class SensorTest extends TestCase
 
             $api = new ApiClient($settings['url'], $settings['token']);
             $this->sensor = $api->get(Sensor::class);
-            $this->deviceId = $settings['device_id'];
+            $this->router_id = $settings['router_id'];
         }
     }
 }

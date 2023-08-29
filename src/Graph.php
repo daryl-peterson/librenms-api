@@ -112,11 +112,7 @@ class Graph extends Common
         if (!isset($list)) {
             return null;
         }
-
         $device = $this->getDevice($hostname);
-        if (!isset($device) || !isset($device->hostname)) {
-            return null;
-        }
 
         if (isset($interfaces)) {
             $ports = $this->fixInterfaceArray($interfaces);
@@ -163,11 +159,6 @@ class Graph extends Common
         }
 
         return $result;
-    }
-
-    public function getCurl()
-    {
-        return $this->curl;
     }
 
     private function fixInterfaceArray(array $interfaces)

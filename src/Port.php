@@ -64,7 +64,9 @@ class Port extends Common
         $this->result = $this->curl->get($url);
 
         if (!isset($this->result['ports'])) {
+            // @codeCoverageIgnoreStart
             return null;
+            // @codeCoverageIgnoreEnd
         }
 
         return $this->result['ports'];

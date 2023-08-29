@@ -12,7 +12,7 @@ namespace LibrenmsApiClient;
  * @since       0.0.1
  * @see https://docs.librenms.org/API/Switching/
  */
-class Vlan
+class Vlan extends Common
 {
     protected Curl $curl;
     public array|null $result;
@@ -30,10 +30,17 @@ class Vlan
      */
     public function get(int|string $hostname): ?array
     {
+        $device = $this->getDevice($hostname);
+        if (!isset($device)) {
+            return null;
+        }
+
         $url = $this->curl->getApiUrl("devices/$hostname/vlans");
         $this->result = $this->curl->get($url);
         if (!isset($this->result['vlans']) || (0 === count($this->result['vlans']))) {
+            // @codeCoverageIgnoreStart
             return null;
+            // @codeCoverageIgnoreEnd
         }
 
         return $this->result['vlans'];

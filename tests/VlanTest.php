@@ -17,10 +17,12 @@ use PHPUnit\Framework\TestCase;
  * @covers \LibrenmsApiClient\ApiClient
  * @covers \LibrenmsApiClient\Curl
  * @covers \LibrenmsApiClient\Vlan
+ * @covers \LibrenmsApiClient\Common
  */
 class VlanTest extends TestCase
 {
     private Vlan $vlan;
+    private $switch_id;
 
     public function test()
     {
@@ -29,7 +31,7 @@ class VlanTest extends TestCase
         $this->assertIsArray($result);
 
         $vlan = array_pop($result);
-        $result = $obj->get($vlan->device_id);
+        $result = $obj->get($this->switch_id);
         $this->assertIsArray($result);
 
         // $this->expectException(ApiException::class);
@@ -43,6 +45,7 @@ class VlanTest extends TestCase
             global $settings;
 
             $api = new ApiClient($settings['url'], $settings['token']);
+            $this->switch_id = $settings['switch_id'];
             $this->vlan = $api->get(Vlan::class);
         }
     }

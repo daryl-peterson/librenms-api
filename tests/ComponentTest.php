@@ -21,13 +21,13 @@ use PHPUnit\Framework\TestCase;
 class ComponentTest extends TestCase
 {
     private Component $component;
-    private int $deviceId;
+    private int $router_id;
 
     public function testAddGetEditDelete()
     {
         $comp = $this->component;
 
-        $device = $comp->getDevice($this->deviceId);
+        $device = $comp->getDevice($this->router_id);
         $this->assertIsObject($device);
 
         $resultOrg = $comp->add($device->device_id, 'API TEST');
@@ -63,7 +63,7 @@ class ComponentTest extends TestCase
 
             $api = new ApiClient($settings['url'], $settings['token']);
             $this->component = $api->get(Component::class);
-            $this->deviceId = $settings['device_id'];
+            $this->router_id = $settings['router_id'];
         }
     }
 }

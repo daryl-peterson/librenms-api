@@ -25,6 +25,9 @@ class CacheTest extends TestCase
         $result = $cache->exists('TEST KEY');
         $this->assertTrue($result);
 
+        $result = $cache->get('TEST KEY');
+        $this->assertIsString($result);
+
         $result = $cache->exists('INVALID KEY');
         $this->assertFalse($result);
 
