@@ -12,6 +12,9 @@ use stdClass;
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
  * @since       0.0.3
+ *
+ * @todo Add setNotes method
+ * @todo Split device actions (add,update,delete) ect into seperate class
  */
 class Device extends Common
 {

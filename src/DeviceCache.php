@@ -18,19 +18,19 @@ class DeviceCache
     public static function get(string $type, string $query = null): ?\stdClass
     {
         $cache = Cache::getInstance();
-        $pool = $cache->pool;
+
         $result = null;
         if (('device_id' !== $type && 'hostname' !== $type) || !isset($query)) {
             return $result;
         }
 
         if ('hostname' === $type) {
-            $deviceId = $pool->get(Cache::DEVICE_HOSTNAME.$query);
+            $deviceId = $cache->get(Cache::DEVICE_HOSTNAME.$query);
             if (isset($deviceId)) {
-                $result = $pool->get(Cache::DEVICE_ID.$deviceId);
+                $result = $cache->get(Cache::DEVICE_ID.$deviceId);
             }
         } else {
-            $result = $pool->get(Cache::DEVICE_ID.$query);
+            $result = $cache->get(Cache::DEVICE_ID.$query);
         }
 
         return $result;
@@ -42,10 +42,10 @@ class DeviceCache
             return;
         }
         $cache = Cache::getInstance();
-        $pool = $cache->pool;
+
         foreach ($list as $device) {
-            $pool->set(Cache::DEVICE_ID.$device->device_id, $device);
-            $pool->set(Cache::DEVICE_HOSTNAME.$device->hostname, $device->device_id);
+            $cache->set(Cache::DEVICE_ID.$device->device_id, $device);
+            $cache->set(Cache::DEVICE_HOSTNAME.$device->hostname, $device->device_id);
         }
     }
 }

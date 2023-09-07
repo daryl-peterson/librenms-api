@@ -34,13 +34,7 @@ class System
         $url = $this->curl->getApiUrl('/system');
         $this->result = $this->curl->get($url);
 
-        if (!isset($this->result) || !isset($this->result['system'])) {
-            // @codeCoverageIgnoreStart
-            return null;
-            // @codeCoverageIgnoreEnd
-        }
-
-        return $this->result['system'];
+        return (!isset($this->result) || !isset($this->result['system'])) ? null : $this->result['system'];
     }
 
     /**
@@ -50,15 +44,11 @@ class System
     {
         $url = $this->curl->getApiUrl('');
         $this->result = $this->curl->get($url);
-        if (!isset($this->result['code']) || (200 !== $this->result['code'])) {
-            // @codeCoverageIgnoreStart
-            return null;
-            // @codeCoverageIgnoreEnd
-        }
+        $passed = (!isset($this->result['code']) || (200 !== $this->result['code'])) ? false : true;
 
         unset($this->result['headers']);
         unset($this->result['code']);
 
-        return $this->result;
+        return (!$passed) ? null : $this->result;
     }
 }

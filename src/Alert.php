@@ -19,7 +19,6 @@ class Alert
     public const EXCEPTION_SEVERITY = 'Invalid severity parameter';
     public const EXCEPTION_ORDER = 'Invalid order parameter';
 
-    public AlertRule $rule;
     public array|null $result;
     protected Curl $curl;
 
@@ -36,26 +35,17 @@ class Alert
     public function get(int $id, bool $state = null): ?\stdClass
     {
         $params = [];
-        $suffix = false;
+        $suffix = '';
         if (isset($state)) {
             $params['state'] = $state;
-        }
-        if (count($params) > 0) {
-            $suffix = http_build_query($params);
+            $suffix = '?'.http_build_query($params);
         }
 
         $url = $this->curl->getApiUrl("/alerts/$id");
-        if ($suffix) {
-            $url .= "?$suffix";
-        }
-
+        $url .= $suffix;
         $this->result = $this->curl->get($url);
 
-        if (!isset($this->result['alerts'][0]) || !is_object($this->result['alerts'][0])) {
-            return null;
-        }
-
-        return $this->result['alerts'][0];
+        return (!isset($this->result['alerts'][0]) || !is_object($this->result['alerts'][0])) ? null : $this->result['alerts'][0];
     }
 
     /**
@@ -70,11 +60,7 @@ class Alert
 
         $msg = strtoupper($this->result['message']);
 
-        if (!isset($this->result) || str_contains($msg, 'NO ALERT')) {
-            return false;
-        }
-
-        return true;
+        return (!isset($this->result) || str_contains($msg, 'NO ALERT')) ? false : true;
     }
 
     /**
@@ -89,11 +75,7 @@ class Alert
 
         $msg = strtoupper($this->result['message']);
 
-        if (!isset($this->result) || str_contains($msg, 'NO ALERT')) {
-            return false;
-        }
-
-        return true;
+        return (!isset($this->result) || str_contains($msg, 'NO ALERT')) ? false : true;
     }
 
     /**
@@ -114,56 +96,51 @@ class Alert
         int $alert_rule = null
     ): ?array {
         $params = [];
-        $suffix = false;
-        if (isset($state)) {
-            if (!in_array($state, [0, 1, 2])) {
-                throw new ApiException(self::EXCEPTION_STATE);
-            }
-            $params['state'] = $state;
+        $suffix = $this->getQuery($state, $severity, $order, $alert_rule);
+
+        try {
+            $url = $this->curl->getApiUrl('/alerts');
+            $url .= $suffix;
+            $this->result = $this->curl->get($url);
+        } catch (\Throwable $th) {
+            $msg = $th->getMessage();
+
+            throw new ApiException($msg);
         }
 
-        if (isset($severity)) {
-            $severity = strtolower($severity);
-            if (!in_array($severity, ['ok', 'warning', 'critical'])) {
-                throw new ApiException(self::EXCEPTION_SEVERITY);
-            }
-            $params['severity'] = $severity;
-        }
+        return (!isset($this->result['alerts']) || (0 === count($this->result['alerts']))) ? null : $this->result['alerts'];
+    }
 
-        if (isset($order)) {
-            $order = strtolower($order);
-            if (!in_array($order, ['asc', 'desc'])) {
-                throw new ApiException(self::EXCEPTION_ORDER);
+    private function getQuery(
+        int $state,
+        string $severity = null,
+        string $order = null,
+        int $alert_rule = null)
+    {
+        $suffix = '';
+        $params = ['state' => $state, 'severity' => $severity, 'order' => $order, 'alert_rule' => $alert_rule];
+        foreach ($params as $key => $value) {
+            if (isset($value)) {
+                continue;
             }
-            $params['order'] = "timestamp $order";
+            unset($params[$key]);
         }
-
-        if (isset($alert_rule)) {
-            $params['alert_rule'] = $alert_rule;
-        }
+        $this->validateOrder($params);
         if (count($params) > 0) {
-            $suffix = http_build_query($params);
+            $suffix = '?'.http_build_query($params);
         }
 
-        $url = $this->curl->getApiUrl('/alerts');
-        if ($suffix) {
-            $url .= "?$suffix";
-        }
-        $this->result = $this->curl->get($url);
+        return $suffix;
+    }
 
-        if (!isset($this->result['alerts']) || (0 === count($this->result['alerts']))) {
-            // @codeCoverageIgnoreStart
-            return null;
-            // @codeCoverageIgnoreEnd
+    private function validateOrder(array &$params)
+    {
+        if (isset($params['order'])) {
+            $order = strtolower($params['order']);
+            if (in_array($order, ['asc', 'desc'])) {
+                $params['order'] = "timestamp $order";
+            }
         }
-
-        $alerts = [];
-        foreach ($this->result['alerts'] as $alert) {
-            $key = $alert->id;
-            $alerts[$key] = $alert;
-        }
-
-        return $alerts;
     }
 
     /**

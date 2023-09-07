@@ -23,10 +23,19 @@ use PHPUnit\Framework\TestCase;
 class FileLoggerTest extends TestCase
 {
     private FileLogger $logger;
+    private $logLevel;
+    private $logFile;
+    private Cache $cache;
+
+    public function __destruct()
+    {
+        $cache = Cache::getInstance();
+        $cache->set(Cache::LOG_LEVEL, $this->logLevel);
+        $cache->set(Cache::LOG_FILE, $this->logFile);
+    }
 
     public function testLog()
     {
-        /*
         $obj = $this->logger;
         $result = $obj->debug('TEST DEBUG');
         $this->assertNull($result);
@@ -36,17 +45,16 @@ class FileLoggerTest extends TestCase
 
         $result = $obj->log('BLAH', 'TEST ERROR', ['UNIT' => $this]);
         $this->assertNull($result);
-        */
     }
 
     public function setUp(): void
     {
-        /*
         $cache = Cache::getInstance();
+        $this->logLevel = $cache->get(Cache::LOG_LEVEL);
+        $this->logFile = $cache->get(Cache::LOG_FILE);
         $cache->delete(Cache::LOG_LEVEL);
         $cache->delete(Cache::LOG_FILE);
 
         $this->logger = new FileLogger();
-        */
     }
 }

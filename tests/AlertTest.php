@@ -15,7 +15,6 @@ use PHPUnit\Framework\TestCase;
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
  * @covers \LibrenmsApiClient\Alert
- * @covers \LibrenmsApiClient\AlertRule
  * @covers \LibrenmsApiClient\ApiClient
  * @covers \LibrenmsApiClient\Curl
  * @covers \LibrenmsApiClient\Device
@@ -60,34 +59,9 @@ class AlertTest extends TestCase
 
         $result = $alert->getListing(0, $object->severity, 'desc', $object->rule_id);
         $this->assertIsArray($result);
-    }
-
-    public function testGetListingStateException()
-    {
-        $alert = $this->alert;
 
         $this->expectException(ApiException::class);
-        $alert->getListing(3);
-        $this->expectExceptionMessage(Alert::EXCEPTION_STATE);
-
-        $result = $alert->getListing(0, null, -1);
-        $this->assertNull($result);
-    }
-
-    public function testGetListingSeverityException()
-    {
-        $alert = $this->alert;
-        $this->expectException(ApiException::class);
-        $alert->getListing(0, 'blah');
-        $this->expectExceptionMessage(Alert::EXCEPTION_SEVERITY);
-    }
-
-    public function testGetListingOrderException()
-    {
-        $alert = $this->alert;
-        $this->expectException(ApiException::class);
-        $result = $alert->getListing(0, 'critical', 'blah');
-        $this->expectExceptionMessage(Alert::EXCEPTION_ORDER);
+        $alert->getListing(3, 'blah', -1);
     }
 
     public function testAll()

@@ -18,24 +18,20 @@ class PortCache
     public static function get(int $device_id): ?array
     {
         $cache = Cache::getInstance();
-        $pool = $cache->pool;
 
-        $result = $pool->get(Cache::PORT_KEY.$device_id);
-
-        return $result;
+        return $cache->get(Cache::PORT_KEY.$device_id);
     }
 
     public static function set(int $device_id, array|null $ports)
     {
         $cache = Cache::getInstance();
-        $pool = $cache->pool;
 
         if (!isset($pool)) {
             // @codeCoverageIgnoreStart
-            $pool->delete(Cache::PORT_KEY.$device_id);
+            $cache->delete(Cache::PORT_KEY.$device_id);
             // @codeCoverageIgnoreEnd
         }
 
-        $pool->set(Cache::PORT_KEY.$device_id, $ports);
+        $cache->set(Cache::PORT_KEY.$device_id, $ports);
     }
 }

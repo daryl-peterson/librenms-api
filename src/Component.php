@@ -63,13 +63,8 @@ class Component extends Common
 
         $url = $this->curl->getApiUrl("/devices/$hostname/components");
         $this->result = $this->curl->put($url, $obj);
-        if (!isset($this->result['code'])) {
-            // @codeCoverageIgnoreStart
-            return false;
-            // @codeCoverageIgnoreEnd
-        }
 
-        return true;
+        return (!isset($this->result['code'])) ? false : true;
     }
 
     /**
@@ -86,13 +81,7 @@ class Component extends Common
         $url = $this->curl->getApiUrl("/devices/$hostname/components/$component_id");
         $this->result = $this->curl->delete($url);
 
-        if (!isset($this->result['code']) || (200 !== $this->result['code'])) {
-            // @codeCoverageIgnoreStart
-            return false;
-            // @codeCoverageIgnoreEnd
-        }
-
-        return true;
+        return (!isset($this->result['code']) || (200 !== $this->result['code'])) ? false : true;
     }
 
     /**
@@ -116,24 +105,13 @@ class Component extends Common
 
         $params = [];
         $suffix = '';
-        if (isset($id)) {
-            $params['id'] = $id;
-        }
-        if (isset($type)) {
-            $params['type'] = $type;
-        }
 
-        if (isset($label)) {
-            $params['label'] = $label;
-        }
-        if (isset($status)) {
-            $params['status'] = $status;
-        }
-        if (isset($disable)) {
-            $params['disable'] = $disable;
-        }
-        if (isset($ignore)) {
-            $params['ignore'] = $ignore;
+        $params = ['id' => $id, 'type' => $type, 'label' => $label, 'status' => $status, 'disable' => $disable, 'ignore' => $ignore];
+        foreach ($params as $key => $value) {
+            if (isset($value)) {
+                continue;
+            }
+            unset($params[$key]);
         }
 
         if (count($params) > 0) {
@@ -143,12 +121,6 @@ class Component extends Common
 
         $this->result = $this->curl->get($url);
 
-        if (!isset($this->result['components'])) {
-            // @codeCoverageIgnoreStart
-            return null;
-            // @codeCoverageIgnoreEnd
-        }
-
-        return $this->result['components'];
+        return (!isset($this->result['components'])) ? null : $this->result['components'];
     }
 }

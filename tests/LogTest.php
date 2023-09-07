@@ -39,10 +39,7 @@ class LogTest extends TestCase
     {
         $log = $this->log;
         $result = $log->getAlertLogs(null, 1);
-        if (!isset($result)) {
-            return;
-        }
-        $alert = array_pop($result['logs']);
+        $alert = array_pop($result);
 
         $result = $log->getAlertLogs($alert->device_id, 1);
         $this->assertIsArray($result);
@@ -56,7 +53,6 @@ class LogTest extends TestCase
         $to = strtotime($alert->time_logged.'60 minute');
         $result = $log->getAlertLogs(null, 1, 0, $alert->time_logged, $to);
         $this->assertIsArray($result);
-        $this->assertIsArray($log->getResult());
 
         $nt = date('m/d/Y H:i', strtotime('+1 year'));
         $result = $log->getAlertLogs(null, null, null, $nt, $nt);

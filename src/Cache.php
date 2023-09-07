@@ -17,66 +17,22 @@ use Cache\Adapter\PHPArray\ArrayCachePool;
  */
 class Cache
 {
-    public const LOG_LEVEL = 'log_level';
-    public const LOG_FILE = 'log_file';
-
+    public const LOG_LEVEL = 'LMS-API-Log-Level';
+    public const LOG_FILE = 'LMS-API-Log-File';
     public const DEVICE_ID = 'LMS-API-Device-Id-';
     public const DEVICE_HOSTNAME = 'LMS-API-Hostname-';
     public const SENSOR_KEY = 'LMS-API-Sensor-';
     public const PORT_KEY = 'LMS-API-Port-';
     public const IFNAME_KEY = 'LMS-API-iFName-';
-
     private static $instance = null;
-    private string $key = 'LibrenmsApiClient';
-    private string $keyBase = 'LMS-API-';
 
     public ArrayCachePool $pool;
 
     private function __construct()
     {
         // @codeCoverageIgnoreStart
-        if (!isset($GLOBALS[$this->key])) {
-            $GLOBALS[$this->key] = [];
-        }
-        // @codeCoverageIgnoreEnd
         $this->pool = new ArrayCachePool();
-    }
-
-    // @codeCoverageIgnoreStart
-    public function __destruct()
-    {
-        unset($GLOBALS[$this->key]);
-    }
-    // @codeCoverageIgnoreEnd
-
-    public function get(string $key, mixed $default = null): mixed
-    {
-        if (!isset($GLOBALS[$this->key][$key])) {
-            return $default;
-        }
-
-        return $GLOBALS[$this->key][$key];
-    }
-
-    public function set(string $key, mixed $value)
-    {
-        $GLOBALS[$this->key][$key] = $value;
-    }
-
-    public function delete(string $key)
-    {
-        if (key_exists($key, $GLOBALS[$this->key])) {
-            unset($GLOBALS[$this->key][$key]);
-        }
-    }
-
-    public function exists(string $key): bool
-    {
-        if (key_exists($key, $GLOBALS[$this->key])) {
-            return true;
-        }
-
-        return false;
+        // @codeCoverageIgnoreEnd
     }
 
     public static function getInstance(): self
@@ -88,5 +44,20 @@ class Cache
         }
 
         return self::$instance;
+    }
+
+    public function get(string $key, $default = null): mixed
+    {
+        return $this->pool->get($key, $default);
+    }
+
+    public function set(string $key, $value): bool
+    {
+        return $this->pool->set($key, $value);
+    }
+
+    public function delete(string $key): bool
+    {
+        return $this->pool->delete($key);
     }
 }

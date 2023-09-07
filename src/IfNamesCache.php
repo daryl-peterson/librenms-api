@@ -18,11 +18,10 @@ class IfNamesCache
     public static function set(int $device_id, array|null $ports): array
     {
         $cache = Cache::getInstance();
-        $pool = $cache->pool;
 
         if (!isset($ports)) {
             // @codeCoverageIgnoreStart
-            $pool->delete(Cache::IFNAME_KEY.$device_id);
+            $cache->delete(Cache::IFNAME_KEY.$device_id);
 
             return null;
             // @codeCoverageIgnoreEnd
@@ -33,7 +32,7 @@ class IfNamesCache
         }
 
         natcasesort($names);
-        $pool->set(Cache::IFNAME_KEY.$device_id, $names);
+        $cache->set(Cache::IFNAME_KEY.$device_id, $names);
 
         return $names;
     }
@@ -41,8 +40,7 @@ class IfNamesCache
     public static function get(int $device_id): ?array
     {
         $cache = Cache::getInstance();
-        $pool = $cache->pool;
 
-        return $pool->get(Cache::IFNAME_KEY.$device_id);
+        return $cache->get(Cache::IFNAME_KEY.$device_id);
     }
 }

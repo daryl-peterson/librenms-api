@@ -119,7 +119,7 @@ class PortTest extends TestCase
     public function testGetByDevice()
     {
         $obj = $this->port;
-        $pc = $this->cache->pool;
+        $pc = $this->cache;
         $pc->delete(Cache::PORT_KEY.$this->routerId);
 
         $ports = $obj->getDevicePorts($this->routerId);

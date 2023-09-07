@@ -98,11 +98,7 @@ class Common
             $device = $this->getDeviceBy('device_id', $hostname);
         }
 
-        if (is_array($device)) {
-            return $device[0];
-        }
-
-        return null;
+        return (is_array($device)) ? $device[0] : null;
     }
 
     /**

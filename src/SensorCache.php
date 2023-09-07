@@ -18,9 +18,8 @@ class SensorCache
     public static function get(int $device_id): ?array
     {
         $cache = Cache::getInstance();
-        $pool = $cache->pool;
 
-        return $pool->get(Cache::SENSOR_KEY.$device_id);
+        return $cache->get(Cache::SENSOR_KEY.$device_id);
     }
 
     public static function set(array|null $list): ?array
@@ -30,7 +29,6 @@ class SensorCache
         }
 
         $cache = Cache::getInstance();
-        $pool = $cache->pool;
 
         $return = [];
         foreach ($list as $sensor) {
@@ -38,7 +36,7 @@ class SensorCache
         }
         foreach ($return as $device_id => $sensors) {
             $key = Cache::SENSOR_KEY.$device_id;
-            $pool->set($key, $sensors);
+            $cache->set($key, $sensors);
         }
 
         return $return;
@@ -47,8 +45,7 @@ class SensorCache
     public static function delete(int $device_id)
     {
         $cache = Cache::getInstance();
-        $pool = $cache->pool;
 
-        $pool->delete(Cache::SENSOR_KEY.$device_id);
+        $cache->delete(Cache::SENSOR_KEY.$device_id);
     }
 }

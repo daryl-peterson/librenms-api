@@ -31,6 +31,13 @@ class Log extends Common
     ): ?array {
         $url = $this->curl->getApiUrl('/logs/alertlog');
 
+        $this->debug('GET ALERT LOG', [
+            'class' => __CLASS__,
+            'function' => __FUNCTION__,
+            'line' => __LINE__,
+            'url' => $url,
+        ]);
+
         return $this->doRequest($url, $hostname, $limit, $start, $from, $to);
     }
 
@@ -55,6 +62,13 @@ class Log extends Common
         string $to = null
     ): ?array {
         $url = $this->curl->getApiUrl('/logs/authlog');
+
+        $this->debug('GET AUTHO LOGS', [
+            'class' => __CLASS__,
+            'function' => __FUNCTION__,
+            'line' => __LINE__,
+            'url' => $url,
+        ]);
 
         return $this->doRequest($url, $hostname, $limit, $start, $from, $to);
     }
@@ -81,6 +95,13 @@ class Log extends Common
     ): ?array {
         $url = $this->curl->getApiUrl('/logs/eventlog');
 
+        $this->debug('GET EVENT LOGS', [
+            'class' => __CLASS__,
+            'function' => __FUNCTION__,
+            'line' => __LINE__,
+            'url' => $url,
+        ]);
+
         return $this->doRequest($url, $hostname, $limit, $start, $from, $to);
     }
 
@@ -106,6 +127,13 @@ class Log extends Common
     ): ?array {
         $url = $this->curl->getApiUrl('/logs/syslog');
 
+        $this->debug('GET SYSLOG', [
+            'class' => __CLASS__,
+            'function' => __FUNCTION__,
+            'line' => __LINE__,
+            'url' => $url,
+        ]);
+
         return $this->doRequest($url, $hostname, $limit, $start, $from, $to);
     }
 
@@ -120,18 +148,7 @@ class Log extends Common
         $result = $this->curl->post($url, $data);
         $this->result = $result;
 
-        if (!isset($result['status']) || 'ok' !== $result['status']) {
-            // @codeCoverageIgnoreStart
-            return false;
-            // @codeCoverageIgnoreEnd
-        }
-
-        return true;
-    }
-
-    public function getResult(): ?array
-    {
-        return $this->result;
+        return (!isset($result['status']) || 'ok' !== $result['status']) ? false : true;
     }
 
     private function doRequest(
@@ -145,48 +162,34 @@ class Log extends Common
         $params = [];
         $suffix = '';
         if (isset($hostname)) {
-            $device = $this->getDevice($hostname);
-            if (!isset($device)) {
-                throw new ApiException(ApiException::ERR_DEVICE_NOT_EXIST);
-            }
+            $device = $this->getDeviceOrException($hostname);
             $url .= "/$device->device_id";
         }
-
-        if (isset($limit)) {
-            $params['limit'] = $limit;
-        }
-
-        if (isset($start)) {
-            $params['start'] = $start;
-        }
-
-        if (isset($from)) {
-            $params['from'] = $start;
-        }
-
-        if (isset($to)) {
-            $params['to'] = $to;
+        $params = ['limit' => $limit, 'start' => $start, 'from' => $from, 'to' => $to];
+        foreach ($params as $key => $value) {
+            if (isset($value)) {
+                continue;
+            }
+            unset($params[$key]);
         }
 
         if (count($params) > 0) {
             $suffix = '?'.http_build_query($params);
         }
         $url .= $suffix;
+        $this->result = $this->curl->get($url);
 
-        $result = $this->curl->get($url);
-        $this->result = $result;
-
-        if (!isset($result['logs']) || !isset($result['count'])) {
-            // @codeCoverageIgnoreStart
-            return null;
-            // @codeCoverageIgnoreEnd
-        }
-        if (0 === $result['count']) {
-            return null;
-        }
-        unset($result['headers']);
-        unset($result['code']);
-        unset($result['status']);
+        $result = (!isset($this->result['logs']) || !isset($this->result['count']) || (0 === $this->result['count'])) ? null : $this->result['logs'];
+        $this->debug('DO REQUEST', [
+            'class' => __CLASS__,
+            'function' => __FUNCTION__,
+            'line' => __LINE__,
+            'url' => $url,
+            'hostname' => $hostname,
+            'params' => $params,
+            'result' => $result,
+            'org' => $this->result,
+        ]);
 
         return $result;
     }

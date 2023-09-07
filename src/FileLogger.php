@@ -37,16 +37,15 @@ class FileLogger extends AbstractLogger
         'EMERGENCY' => self::EMERGENCY,
     ];
 
-    protected Cache $cache;
     private array $keys;
     private string|null $file;
     private int|string|null $level;
 
     public function __construct()
     {
-        $this->cache = Cache::getInstance();
-        $this->level = $this->cache->get(Cache::LOG_LEVEL);
-        $this->file = $this->cache->get(Cache::LOG_FILE);
+        $cache = Cache::getInstance();
+        $this->level = $cache->get(Cache::LOG_LEVEL);
+        $this->file = $cache->get(Cache::LOG_FILE);
 
         if (!isset($this->level)) {
             $this->level = self::ERROR_LEVEL;
