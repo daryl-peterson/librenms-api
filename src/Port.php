@@ -15,18 +15,6 @@ use stdClass;
  */
 class Port extends Common
 {
-    protected Curl $curl;
-    private string $columns;
-    public array|null $result;
-
-    public function __construct(Curl $curl)
-    {
-        $this->curl = $curl;
-        $this->columns = 'device_id,port_id,disabled,deleted,ignore,ifName,';
-        $this->columns .= 'ifDescr,ifAlias,ifMtu,ifType,ifVlan,ifSpeed,ifOperStatus,';
-        $this->columns .= 'ifAdminStatus,ifPhysAddress,ifInErrors,ifOutErrors,poll_time';
-    }
-
     /**
      * Get port by id.
      *
@@ -37,11 +25,16 @@ class Port extends Common
         $url = $this->curl->getApiUrl("/ports/$id");
         $this->result = $this->curl->get($url);
 
-        if (!isset($this->result['port'][0])) {
-            return null;
-        }
+        $result = (!isset($this->result['port'][0]) || !is_object($this->result['port'][0])) ? null : $this->result['port'][0];
 
-        return $this->result['port'][0];
+        $this->debug('PORT VALUE', [
+            'class' => __CLASS__,
+            'function' => __FUNCTION__,
+            'line' => __LINE__,
+            'ports' => $result,
+        ]);
+
+        return $result;
     }
 
     /**
@@ -55,55 +48,19 @@ class Port extends Common
      */
     public function getListing(string $columns = null): ?array
     {
-        if (!isset($columns)) {
-            $columns = $this->columns;
-        }
-
-        $columns = urlencode($columns);
+        $columns = urlencode($this->setPortColumns($columns));
         $url = $this->curl->getApiUrl('/ports?columns='.$columns);
         $this->result = $this->curl->get($url);
 
-        if (!isset($this->result['ports'])) {
-            // @codeCoverageIgnoreStart
-            return null;
-            // @codeCoverageIgnoreEnd
-        }
+        $result = !isset($this->result['ports']) ? null : $this->result['ports'];
+        $this->debug('PORT VALUE', [
+            'class' => __CLASS__,
+            'function' => __FUNCTION__,
+            'line' => __LINE__,
+            'ports' => $result,
+        ]);
 
-        return $this->result['ports'];
-    }
-
-    /**
-     * Update a device port notes field in the devices_attrs database.
-     *
-     * @param int|string $hostname Hostname can be either the device hostname or id
-     *
-     * @see https://docs.librenms.org/API/Devices/#update_device_port_notes
-     */
-    public function setNotes(int|string $hostname, int $port_id, string $note)
-    {
-        $device = $this->getDevice($hostname);
-        if (!isset($device)) {
-            return null;
-        }
-        $url = $this->curl->getApiUrl("/devices/$device->device_id/port/$port_id");
-        $this->result = $this->curl->patch($url, ['notes' => $note]);
-        print_r($this->result);
-
-        return $this->result;
-    }
-
-    /**
-     * Get a list of ports for a particular device.
-     *
-     * @param int|string $hostname Hostname can be either the device hostname or id
-     *
-     * @return array|null Array of stdClass Objects
-     *
-     * @see https://docs.librenms.org/API/Devices/#get_port_graphs
-     */
-    public function getByDevice(int|string $hostname, string $columns = null): ?array
-    {
-        return $this->getDevicePorts($hostname, $columns);
+        return $result;
     }
 
     /**
@@ -122,22 +79,33 @@ class Port extends Common
             $url .= '?filter='.$filter;
         }
         $this->result = $this->curl->get($url);
-        if (!isset($this->result['ports'])) {
-            return null;
-        }
 
-        return $this->result['ports'];
+        $result = !isset($this->result['ports']) ? null : $this->result['ports'];
+        $this->debug('PORT VALUE', [
+            'class' => __CLASS__,
+            'function' => __FUNCTION__,
+            'line' => __LINE__,
+            'search' => $search,
+            'filter' => $filter,
+            'ports' => $result,
+        ]);
+
+        return $result;
     }
 
     /**
      * Get information about a particular port for a device.
      *
      * @see https://docs.librenms.org/API/Devices/#get_port_stats_by_port_hostname
+     *
+     * @throws ApiException
      */
     public function getStats(int|string $hostname, string $ifname): ?\stdClass
     {
-        $device = $this->getDevice($hostname);
-        if (!isset($device)) {
+        $device = $this->getDeviceOrException($hostname);
+        $list = (array) $this->getDeviceIfNames($device->device_id);
+
+        if (!in_array($ifname, $list)) {
             return null;
         }
 
@@ -145,11 +113,17 @@ class Port extends Common
         $url = $this->curl->getApiUrl("/devices/$device->device_id/ports/$ifname");
         $this->result = $this->curl->get($url);
 
-        if (!isset($this->result['port'])) {
-            return null;
-        }
+        $result = !isset($this->result['port']) ? null : $this->result['port'];
+        $this->debug('PORT STATS', [
+            'class' => __CLASS__,
+            'function' => __FUNCTION__,
+            'line' => __LINE__,
+            'hostname' => $hostname,
+            'ifname' => $ifname,
+            'ports' => $result,
+        ]);
 
-        return $this->result['port'];
+        return $result;
     }
 
     /**
@@ -161,17 +135,28 @@ class Port extends Common
      */
     public function getIpInfo(int $port_id): ?array
     {
-        $url = $this->curl->getApiUrl("/ports/$port_id/ip");
-        $this->result = $this->curl->get($url);
-
-        if (!isset($this->result['addresses'])) {
-            return null;
+        try {
+            $url = $this->curl->getApiUrl("/ports/$port_id/ip");
+            $this->result = $this->curl->get($url);
+        } catch (\Throwable $th) {
+            $msg = $th->getMessage();
+            if (!str_contains($msg, 'does not have any')) {
+                // @codeCoverageIgnoreStart
+                throw new ApiException($msg);
+                // @codeCoverageIgnoreEnd
+            }
         }
-        if (!count($this->result['addresses']) > 0) {
-            return null;
-        }
 
-        return $this->result['addresses'];
+        $result = !isset($this->result['addresses']) ? null : $this->result['addresses'];
+        $this->debug('ADDRESS INFO', [
+            'class' => __CLASS__,
+            'function' => __FUNCTION__,
+            'line' => __LINE__,
+            'portid' => $port_id,
+            'addresses' => $result,
+        ]);
+
+        return $result;
     }
 
     /**
@@ -186,15 +171,20 @@ class Port extends Common
     public function search(string $search, string $columns = null): ?array
     {
         $search = urlencode($search);
-        if (!isset($columns)) {
-            $columns = $this->columns;
-        }
-        $columns = urlencode($columns);
+        $columns = urlencode($this->setPortColumns($columns));
 
         $url = $this->curl->getApiUrl("/ports/search/$search?columns=$columns");
         $this->result = $this->curl->get($url);
+        $result = (!isset($this->result['ports']) || 0 === count($this->result['ports'])) ? null : $this->result['ports'];
+        $this->debug('PORT SEARCH', [
+            'class' => __CLASS__,
+            'function' => __FUNCTION__,
+            'line' => __LINE__,
+            'search' => $search,
+            'result' => $result,
+        ]);
 
-        return $this->result;
+        return $result;
     }
 
     /**
@@ -214,20 +204,20 @@ class Port extends Common
             $fields = 'ifName,ifDescr,ifAlias';
         }
         $fields = urlencode($fields);
-        if (!isset($columns)) {
-            $columns = $this->columns;
-        }
-        $columns = urlencode($columns);
+        $columns = urlencode($this->setPortColumns($columns));
         $url = $this->curl->getApiUrl("/ports/search/$fields/$search?columns=$columns");
         $this->result = $this->curl->get($url);
 
-        if (!isset($this->result['ports'])) {
-            return null;
-        }
-        if (!count($this->result['ports']) > 0) {
-            return null;
-        }
+        $result = (!isset($this->result['ports']) || 0 === count($this->result['ports'])) ? null : $this->result['ports'];
+        $this->debug('PORT SEARCH', [
+            'class' => __CLASS__,
+            'function' => __FUNCTION__,
+            'line' => __LINE__,
+            'search' => $search,
+            'fields' => $fields,
+            'result' => $result,
+        ]);
 
-        return $this->result['ports'];
+        return $result;
     }
 }

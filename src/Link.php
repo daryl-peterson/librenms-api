@@ -15,15 +15,6 @@ use stdClass;
  */
 class Link extends Common
 {
-    protected Curl $curl;
-    public array|null $result;
-
-    public function __construct(Curl $curl)
-    {
-        $this->curl = $curl;
-        $this->result = [];
-    }
-
     /**
      * Listing of discovered devices CDP, LLDP.
      *

@@ -13,15 +13,6 @@ namespace LibrenmsApiClient;
  */
 class Component extends Common
 {
-    protected Curl $curl;
-    public array|null $result;
-
-    public function __construct(Curl $curl)
-    {
-        $this->curl = $curl;
-        $this->result = [];
-    }
-
     /**
      * Create a new component of a type on a particular device.
      *

@@ -3,6 +3,7 @@
 namespace LibrenmsApiClient\Tests;
 
 use LibrenmsApiClient\ApiClient;
+use LibrenmsApiClient\ApiException;
 use LibrenmsApiClient\Graph;
 use PHPUnit\Framework\TestCase;
 
@@ -17,9 +18,12 @@ use PHPUnit\Framework\TestCase;
  *
  * @covers \LibrenmsApiClient\ApiClient
  * @covers \LibrenmsApiClient\Cache
- * @covers \LibrenmsApiClient\Graph
- * @covers \LibrenmsApiClient\Curl
  * @covers \LibrenmsApiClient\Common
+ * @covers \LibrenmsApiClient\Curl
+ * @covers \LibrenmsApiClient\FileLogger
+ * @covers \LibrenmsApiClient\Graph
+ * @covers \LibrenmsApiClient\DeviceCache
+ * @covers \LibrenmsApiClient\PortCache
  */
 class GraphTest extends TestCase
 {
@@ -36,8 +40,8 @@ class GraphTest extends TestCase
         $result = $graph->getPort($this->router_id);
         $this->assertIsArray($result);
 
-        $result = $graph->getPort(0);
-        $this->assertNull($result);
+        $this->expectException(ApiException::class);
+        $graph->getPort(0);
 
         $result = $graph->getPort($this->router_id, ['lo0']);
         $this->assertNull($result);

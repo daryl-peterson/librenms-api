@@ -13,14 +13,6 @@ namespace LibrenmsApiClient;
  */
 class Log extends Common
 {
-    protected Curl $curl;
-    private array|null $result;
-
-    public function __construct(Curl $curl)
-    {
-        $this->curl = $curl;
-    }
-
     /**
      * Alert logs.
      *
@@ -155,7 +147,7 @@ class Log extends Common
         if (isset($hostname)) {
             $device = $this->getDevice($hostname);
             if (!isset($device)) {
-                return null;
+                throw new ApiException(ApiException::ERR_DEVICE_NOT_EXIST);
             }
             $url .= "/$device->device_id";
         }

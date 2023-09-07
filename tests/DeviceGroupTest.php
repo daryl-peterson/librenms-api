@@ -15,7 +15,10 @@ use PHPUnit\Framework\TestCase;
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
  * @covers \LibrenmsApiClient\ApiClient
+ * @covers \LibrenmsApiClient\Cache
+ * @covers \LibrenmsApiClient\Common
  * @covers \LibrenmsApiClient\Curl
+ * @covers \LibrenmsApiClient\FileLogger
  * @covers \LibrenmsApiClient\DeviceGroup
  */
 class DeviceGroupTest extends TestCase

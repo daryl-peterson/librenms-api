@@ -18,6 +18,7 @@ use PHPUnit\Framework\TestCase;
  * @covers \LibrenmsApiClient\ApiClient
  * @covers \LibrenmsApiClient\Arp
  * @covers \LibrenmsApiClient\Curl
+ * @covers \LibrenmsApiClient\DeviceCache
  */
 class ArpTest extends TestCase
 {

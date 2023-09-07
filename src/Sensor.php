@@ -15,17 +15,6 @@ namespace LibrenmsApiClient;
  */
 class Sensor extends Common
 {
-    protected Curl $curl;
-    private array $list;
-    public array|null $result;
-
-    public function __construct(Curl $curl)
-    {
-        $this->curl = $curl;
-        $this->list = [];
-        $this->result = [];
-    }
-
     /**
      * Sensor listing.
      *
@@ -33,25 +22,18 @@ class Sensor extends Common
      */
     public function getListing(): ?array
     {
-        if (count($this->list) > 0) {
-            return $this->list;
-        }
         $url = $this->curl->getApiUrl('/resources/sensors');
         $this->result = $this->curl->get($url);
 
-        if (!isset($this->result['sensors']) || (0 === count($this->result['sensors']))) {
-            // @codeCoverageIgnoreStart
-            return null;
-            // @codeCoverageIgnoreEnd
-        }
+        $result = (!isset($this->result['sensors']) || (0 === count($this->result['sensors']))) ? null : $this->result['sensors'];
+        $this->debug('GET SENSOR LISTING', [
+            'class' => __CLASS__,
+            'function' => __FUNCTION__,
+            'line' => __LINE__,
+            'result' => $result,
+        ]);
 
-        $return = [];
-        foreach ($this->result['sensors'] as $sensor) {
-            $return[$sensor->device_id][] = $sensor;
-        }
-        $this->list = $return;
-
-        return $this->list;
+        return SensorCache::set($result);
     }
 
     /**
@@ -63,20 +45,26 @@ class Sensor extends Common
      */
     public function get(int|string $hostname): ?array
     {
-        $device = $this->getDevice($hostname);
-        if (!isset($device)) {
-            return null;
+        $device = $this->getDeviceOrException($hostname);
+        $sensors = SensorCache::get($device->device_id);
+
+        if (isset($sensors) && count($sensors) > 0) {
+            return $sensors;
         }
 
-        $sensors = $this->getListing();
+        $this->getListing();
+        $sensors = SensorCache::get($device->device_id);
+        $result = (!isset($sensors)) ? null : $sensors;
 
-        if (!isset($sensors[$device->device_id]) || (0 === count($sensors[$device->device_id]))) {
-            // @codeCoverageIgnoreStart
-            return null;
-            // @codeCoverageIgnoreEnd
-        }
+        $this->debug('GET SENSOR', [
+            'class' => __CLASS__,
+            'function' => __FUNCTION__,
+            'line' => __LINE__,
+            'hostname' => $hostname,
+            'result' => $result,
+        ]);
 
-        return $sensors[$device->device_id];
+        return $result;
     }
 
     /**

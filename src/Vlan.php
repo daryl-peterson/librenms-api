@@ -14,15 +14,6 @@ namespace LibrenmsApiClient;
  */
 class Vlan extends Common
 {
-    protected Curl $curl;
-    public array|null $result;
-
-    public function __construct(Curl $curl)
-    {
-        $this->curl = $curl;
-        $this->result = [];
-    }
-
     /**
      * Get a list of all VLANs for a given device.
      *

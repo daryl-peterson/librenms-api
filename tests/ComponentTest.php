@@ -14,9 +14,12 @@ use PHPUnit\Framework\TestCase;
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
  * @covers \LibrenmsApiClient\ApiClient
- * @covers \LibrenmsApiClient\Component
- * @covers \LibrenmsApiClient\Curl
+ * @covers \LibrenmsApiClient\Cache
  * @covers \LibrenmsApiClient\Common
+ * @covers \LibrenmsApiClient\Curl
+ * @covers \LibrenmsApiClient\FileLogger
+ * @covers \LibrenmsApiClient\Component
+ * @covers \LibrenmsApiClient\DeviceCache
  */
 class ComponentTest extends TestCase
 {

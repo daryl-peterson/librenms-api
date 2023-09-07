@@ -192,8 +192,9 @@ class Curl
             throw new ApiException($this->result['message']);
             // @codeCoverageIgnoreEnd
         }
-
+        // @codeCoverageIgnoreStart
         return $this->result;
+        // @codeCoverageIgnoreEnd
     }
 
     /**

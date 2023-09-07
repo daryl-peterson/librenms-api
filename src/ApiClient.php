@@ -2,6 +2,7 @@
 
 namespace LibrenmsApiClient;
 
+use Cache\Adapter\PHPArray\ArrayCachePool;
 use DI\Container;
 use DI\ContainerBuilder;
 
@@ -36,6 +37,7 @@ class ApiClient
         $builder->addDefinitions(
             [
                 Curl::class => $curl,
+                ArrayCachePool::class => new ArrayCachePool(),
 
                 Alert::class => \DI\autowire(Alert::class)
                     ->constructor(\DI\get(Curl::class)),
@@ -61,8 +63,11 @@ class ApiClient
                 Vlan::class => \DI\autowire(Vlan::class)
                     ->constructor(\DI\get(Curl::class)),
 
+                DeviceValidator::class => \DI\autowire(DeviceValidator::class)
+                    ->constructor(),
+
                 Device::class => \DI\autowire(Device::class)
-                    ->constructor(\DI\get(Curl::class)),
+                    ->constructor(\DI\get(Curl::class), \DI\get(DeviceValidator::class)),
 
                 Port::class => \DI\autowire(Port::class)
                     ->constructor(\DI\get(Curl::class)),

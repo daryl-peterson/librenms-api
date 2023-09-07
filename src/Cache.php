@@ -2,6 +2,8 @@
 
 namespace LibrenmsApiClient;
 
+use Cache\Adapter\PHPArray\ArrayCachePool;
+
 /**
  * Class description.
  *
@@ -15,15 +17,37 @@ namespace LibrenmsApiClient;
  */
 class Cache
 {
+    public const LOG_LEVEL = 'log_level';
+    public const LOG_FILE = 'log_file';
+
+    public const DEVICE_ID = 'LMS-API-Device-Id-';
+    public const DEVICE_HOSTNAME = 'LMS-API-Hostname-';
+    public const SENSOR_KEY = 'LMS-API-Sensor-';
+    public const PORT_KEY = 'LMS-API-Port-';
+    public const IFNAME_KEY = 'LMS-API-iFName-';
+
     private static $instance = null;
     private string $key = 'LibrenmsApiClient';
+    private string $keyBase = 'LMS-API-';
+
+    public ArrayCachePool $pool;
 
     private function __construct()
     {
+        // @codeCoverageIgnoreStart
         if (!isset($GLOBALS[$this->key])) {
             $GLOBALS[$this->key] = [];
         }
+        // @codeCoverageIgnoreEnd
+        $this->pool = new ArrayCachePool();
     }
+
+    // @codeCoverageIgnoreStart
+    public function __destruct()
+    {
+        unset($GLOBALS[$this->key]);
+    }
+    // @codeCoverageIgnoreEnd
 
     public function get(string $key, mixed $default = null): mixed
     {
@@ -58,7 +82,9 @@ class Cache
     public static function getInstance(): self
     {
         if (null == self::$instance) {
+            // @codeCoverageIgnoreStart
             self::$instance = new Cache();
+            // @codeCoverageIgnoreEnd
         }
 
         return self::$instance;

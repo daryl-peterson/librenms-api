@@ -16,57 +16,19 @@ use PHPUnit\Framework\TestCase;
  * @copyright   Copyright (c) 2020, Daryl Peterson
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
- * @covers \LibrenmsApiClient\Arp
- * @covers \LibrenmsApiClient\Alert
- * @covers \LibrenmsApiClient\AlertRule
  * @covers \LibrenmsApiClient\ApiClient
- * @covers \LibrenmsApiClient\Component
+ * @covers \LibrenmsApiClient\Cache
+ * @covers \LibrenmsApiClient\Common
  * @covers \LibrenmsApiClient\Curl
- * @covers \LibrenmsApiClient\Device
- * @covers \LibrenmsApiClient\DeviceGroup
- * @covers \LibrenmsApiClient\Graph
- * @covers \LibrenmsApiClient\Health
- * @covers \LibrenmsApiClient\Inventory
- * @covers \LibrenmsApiClient\Link
+ * @covers \LibrenmsApiClient\FileLogger
  * @covers \LibrenmsApiClient\Location
- * @covers \LibrenmsApiClient\Log
- * @covers \LibrenmsApiClient\Port
- * @covers \LibrenmsApiClient\Sensor
- * @covers \LibrenmsApiClient\System
- * @covers \LibrenmsApiClient\Vlan
- * @covers \LibrenmsApiClient\Wireless
+ * @covers \LibrenmsApiClient\DeviceCache
+ * @covers \LibrenmsApiClient\PortCache
  */
 class LocationTest extends TestCase
 {
     private Location $location;
     private $name;
-
-    public function testAdd()
-    {
-        $obj = $this->location;
-        $result = $obj->add($this->name, '37.4220041', '-122.0862462');
-        $this->assertTrue($result);
-
-        $this->expectException(ApiException::class);
-        $result = $obj->add($this->name, '37.4220041', '-122.0862462');
-    }
-
-    public function testEdit()
-    {
-        $obj = $this->location;
-
-        $result = $obj->edit($this->name, $this->name.'1', '31.909883', '-98.619538', true);
-        $this->assertTrue($result);
-
-        $result = $obj->delete($this->name.'1');
-        $this->assertTrue($result);
-
-        $this->expectException(ApiException::class);
-        $obj->delete($this->name.'999');
-
-        $this->expectException(ApiException::class);
-        $obj->edit($this->name.'2');
-    }
 
     public function testGetListing()
     {
@@ -87,6 +49,32 @@ class LocationTest extends TestCase
 
         $this->expectException(ApiException::class);
         $result = $obj->get(0);
+    }
+
+    public function testAddException()
+    {
+        $obj = $this->location;
+        $result = $obj->getListing();
+        $this->assertIsArray($result);
+        $location = array_pop($result);
+        $result = $obj->get($location->location);
+
+        $this->expectException(ApiException::class);
+        $this->expectExceptionMessage(ApiException::ERR_LOCATION_EXIST);
+        $obj->add($result->location, $result->lat, $result->lng);
+    }
+
+    public function testAdd()
+    {
+        $obj = $this->location;
+        $result = $obj->add('TEST LOCATION', '37.4220041', '-122.0862462');
+        $this->assertTrue($result);
+
+        $result = $obj->edit('TEST LOCATION', 'TEST LOCATION1', '37.4220041', '-122.0862462', false);
+        $this->assertTrue($result);
+
+        $result = $obj->delete('TEST LOCATION1');
+        $this->assertTrue($result);
     }
 
     public function setUp(): void

@@ -13,13 +13,6 @@ namespace LibrenmsApiClient;
  */
 class Health extends Common
 {
-    protected Curl $curl;
-
-    public function __construct(Curl $curl)
-    {
-        $this->curl = $curl;
-    }
-
     /**
      * Get a list of overall health graphs available.
      *

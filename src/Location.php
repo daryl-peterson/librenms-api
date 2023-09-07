@@ -11,25 +11,16 @@ namespace LibrenmsApiClient;
  *
  * @since       0.0.1
  */
-class Location
+class Location extends Common
 {
-    protected Curl $curl;
-    public array|null $result;
-
-    public function __construct(Curl $curl)
-    {
-        $this->curl = $curl;
-        $this->result = [];
-    }
-
     /**
      * Add location.
      *
      * @see https://docs.librenms.org/API/Locations/#add_location
      *
-     * @throws ApiException Triggered by curl->post
+     * @throws ApiException
      */
-    public function add(string $location, string $lat, string $lng, bool $fixed = false): bool
+    public function add(string $location, string|null $lat, string|null $lng, bool $fixed = false): bool
     {
         $location = trim($location);
         $data = [
@@ -38,6 +29,23 @@ class Location
             'lng' => $lng,
             'fixed_coordinates' => $fixed,
         ];
+
+        try {
+            $objLocation = $this->get($location);
+        } catch (\Throwable $th) {
+            $msg = $th->getMessage();
+            if (ApiException::ERR_LOCATION_NOT_EXIST !== $msg) {
+                // @codeCoverageIgnoreStart
+                throw new ApiException($msg);
+                // @codeCoverageIgnoreEnd
+            }
+        }
+
+        if (isset($objLocation)) {
+            // @codeCoverageIgnoreStart
+            throw new ApiException(ApiException::ERR_LOCATION_EXIST);
+            // @codeCoverageIgnoreEnd
+        }
 
         $url = $this->curl->getApiUrl('/locations');
         $this->result = $this->curl->post($url, $data);
@@ -62,13 +70,22 @@ class Location
      */
     public function get(int|string $location): false|\stdClass
     {
-        $location = $this->fixLocation($location);
-        $url = $this->curl->getApiUrl("/location/$location");
-        $this->result = $this->curl->get($url);
+        try {
+            $location = $this->fixLocation($location);
+            $url = $this->curl->getApiUrl("/location/$location");
+            $this->result = $this->curl->get($url);
+        } catch (\Throwable $th) {
+            $msg = strtolower($th->getMessage());
+            if (str_contains($msg, 'does not exist')) {
+                throw new ApiException(ApiException::ERR_LOCATION_NOT_EXIST);
+            } else {
+                throw new ApiException($msg);
+            }
+        }
 
         if (!isset($this->result['get_location']) || !is_object($this->result['get_location'])) {
             // @codeCoverageIgnoreStart
-            return false;
+            throw new ApiException(ApiException::ERR_LOCATION_NOT_EXIST);
             // @codeCoverageIgnoreEnd
         }
 
@@ -130,9 +147,9 @@ class Location
     public function edit(
         int|string $location,
         string $name = null,
-        string $lat = null,
-        string $lng = null,
-        bool $fixed = null
+        string|null $lat = null,
+        string|null $lng = null,
+        bool|null $fixed = false
     ): bool {
         $data = [];
 

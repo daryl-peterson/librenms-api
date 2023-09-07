@@ -2,6 +2,9 @@
 
 namespace LibrenmsApiClient;
 
+use Psr\Log\LoggerAwareTrait;
+use stdClass;
+
 /**
  * Class description.
  *
@@ -15,7 +18,24 @@ namespace LibrenmsApiClient;
  */
 class Common
 {
+    use LoggerAwareTrait;
+
     protected Curl $curl;
+    protected Cache $cache;
+    public array|null $result;
+    public string $portColumns;
+
+    public function __construct(Curl $curl)
+    {
+        $this->curl = $curl;
+        $this->cache = Cache::getInstance();
+        $this->result = [];
+        $this->logger = new FileLogger();
+
+        $this->portColumns = 'device_id,port_id,disabled,deleted,ignore,ifName,';
+        $this->portColumns .= 'ifDescr,ifAlias,ifMtu,ifType,ifVlan,ifSpeed,ifOperStatus,';
+        $this->portColumns .= 'ifAdminStatus,ifPhysAddress,ifInErrors,ifOutErrors,poll_time';
+    }
 
     /**
      * Get device list by.
@@ -46,22 +66,23 @@ class Common
      */
     public function getDeviceBy(string $type, string $query = null): ?array
     {
+        $device = DeviceCache::get($type, $query);
+        if (isset($device) && is_object($device)) {
+            return [$device];
+        }
+
         $params['type'] = $type;
         $params['query'] = $query;
 
         $suffix = http_build_query($params);
         $url = $this->curl->getApiUrl('/devices');
         $url .= "?$suffix";
-        $result = $this->curl->get($url);
+        $this->result = $this->curl->get($url);
 
-        if (!isset($result['devices']) ||
-            !is_array($result['devices']) || (0 === count($result['devices']))) {
-            // @codeCoverageIgnoreStart
-            return null;
-            // @codeCoverageIgnoreEnd
-        }
+        $result = (!isset($this->result['devices']) || (0 === count($this->result['devices']))) ? null : $this->result['devices'];
+        DeviceCache::set($result);
 
-        return $result['devices'];
+        return $result;
     }
 
     /**
@@ -101,15 +122,28 @@ class Common
         }
 
         $url = $this->curl->getApiUrl("/devices/$device->device_id/links");
-        $result = $this->curl->get($url);
+        $this->result = $this->curl->get($url);
 
-        if (!isset($result['links']) || (0 === count($result['links']))) {
-            // @codeCoverageIgnoreStart
-            return false;
-            // @codeCoverageIgnoreEnd
+        $result = (!isset($this->result['links']) || (0 === count($this->result['links']))) ? null : $this->result['links'];
+
+        return $result;
+    }
+
+    public function getDeviceIfNames(int|string $hostname): ?array
+    {
+        $device = $this->getDeviceOrException($hostname);
+        $names = IfNamesCache::get($device->device_id);
+        if (isset($names)) {
+            return $names;
         }
 
-        return $result['links'];
+        $url = $this->curl->getApiUrl("/devices/$device->device_id/ports?columns=ifName");
+        $this->result = $this->curl->get($url);
+
+        $result = (!isset($this->result['ports']) || (0 === count($this->result['ports']))) ? null : $this->result['ports'];
+        $names = IfNamesCache::set($device->device_id, $result);
+
+        return $names;
     }
 
     /**
@@ -120,32 +154,75 @@ class Common
      * @return array|null Array of stdClass Objects
      *
      * @see https://docs.librenms.org/API/Devices/#get_port_graphs
+     *
+     * @throws ApiException
      */
     public function getDevicePorts(int|string $hostname, string $columns = null): ?array
     {
-        $device = $this->getDevice($hostname);
-        if (!isset($device)) {
-            return null;
-        }
-
-        $cols = 'device_id,port_id,disabled,deleted,ignore,ifName,';
-        $cols .= 'ifDescr,ifAlias,ifMtu,ifType,ifVlan,ifSpeed,ifOperStatus,';
-        $cols .= 'ifAdminStatus,ifPhysAddress,ifInErrors,ifOutErrors,poll_time';
-
-        if (!isset($columns)) {
-            $columns = $cols;
+        $device = $this->getDeviceOrException($hostname);
+        $columns = $this->setPortColumns($columns);
+        $ports = PortCache::get($device->device_id);
+        if (isset($ports)) {
+            return $ports;
         }
 
         $columns = urlencode($columns);
         $url = $this->curl->getApiUrl("/devices/$device->device_id/ports?columns=".$columns);
-        $result = $this->curl->get($url);
+        $this->result = $this->curl->get($url);
 
-        if (!isset($result['ports']) || (0 === count($result['ports']))) {
-            // @codeCoverageIgnoreStart
-            return null;
-            // @codeCoverageIgnoreEnd
+        $result = (!isset($this->result['ports']) || (0 === count($this->result['ports']))) ? null : $this->result['ports'];
+        IfNamesCache::set($device->device_id, $result);
+        PortCache::set($device->device_id, $result);
+
+        return $result;
+    }
+
+    protected function getDeviceOrException(int|string $hostname): \stdClass
+    {
+        $device = $this->getDevice($hostname);
+        if (!isset($device)) {
+            throw new ApiException(ApiException::ERR_DEVICE_NOT_EXIST);
         }
 
-        return $result['ports'];
+        return $device;
+    }
+
+    protected function hasDeviceException(int|string $hostname)
+    {
+        $device = $this->getDevice($hostname);
+        if (isset($device)) {
+            throw new ApiException(ApiException::ERR_DEVICE_DOES_EXIST);
+        }
+    }
+
+    protected function hasFieldOrException(\stdClass $object, string $field)
+    {
+        $fieldList = get_object_vars($object);
+        if (!key_exists($field, $fieldList)) {
+            throw new ApiException(ApiException::ERR_INVALID_FIELD);
+        }
+    }
+
+    protected function setPortColumns(string $columns = null)
+    {
+        if (!isset($columns)) {
+            $columns = $this->portColumns;
+        }
+
+        if (!str_contains($columns, 'ifName')) {
+            $columns .= ',ifName';
+        }
+
+        return $columns;
+    }
+
+    protected function debug(string $message, array $context)
+    {
+        if (!isset($this->logger)) {
+            // @codeCoverageIgnoreStart
+            return;
+            // @codeCoverageIgnoreEnd
+        }
+        $this->logger->debug($message, $context);
     }
 }

@@ -17,10 +17,14 @@ use PHPUnit\Framework\TestCase;
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
  * @covers \LibrenmsApiClient\ApiClient
- * @covers \LibrenmsApiClient\Curl
- * @covers \LibrenmsApiClient\Device
- * @covers \LibrenmsApiClient\Link
+ * @covers \LibrenmsApiClient\Cache
  * @covers \LibrenmsApiClient\Common
+ * @covers \LibrenmsApiClient\Curl
+ * @covers \LibrenmsApiClient\FileLogger
+ * @covers \LibrenmsApiClient\Device
+ * @covers \LibrenmsApiClient\DeviceCache
+ * @covers \LibrenmsApiClient\Link
+ * @covers \LibrenmsApiClient\PortCache
  */
 class LinkTest extends TestCase
 {

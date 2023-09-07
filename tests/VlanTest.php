@@ -15,9 +15,13 @@ use PHPUnit\Framework\TestCase;
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
  * @covers \LibrenmsApiClient\ApiClient
- * @covers \LibrenmsApiClient\Curl
- * @covers \LibrenmsApiClient\Vlan
+ * @covers \LibrenmsApiClient\Cache
  * @covers \LibrenmsApiClient\Common
+ * @covers \LibrenmsApiClient\Curl
+ * @covers \LibrenmsApiClient\FileLogger
+ * @covers \LibrenmsApiClient\Vlan
+ * @covers \LibrenmsApiClient\DeviceCache
+ * @covers \LibrenmsApiClient\PortCache
  */
 class VlanTest extends TestCase
 {

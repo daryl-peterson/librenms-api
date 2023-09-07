@@ -15,14 +15,6 @@ use stdClass;
  */
 class Graph extends Common
 {
-    protected Curl $curl;
-    public array|null $result;
-
-    public function __construct(Curl $curl)
-    {
-        $this->curl = $curl;
-    }
-
     /**
      * Get a list of available graphs for a device, this does not include ports.
      *

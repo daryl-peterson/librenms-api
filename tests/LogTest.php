@@ -3,6 +3,7 @@
 namespace LibrenmsApiClient\Tests;
 
 use LibrenmsApiClient\ApiClient;
+use LibrenmsApiClient\ApiException;
 use LibrenmsApiClient\Log;
 use PHPUnit\Framework\TestCase;
 
@@ -16,9 +17,12 @@ use PHPUnit\Framework\TestCase;
  * @license     https://www.gnu.org/licenses/gpl-3.0.txt
  *
  * @covers \LibrenmsApiClient\ApiClient
- * @covers \LibrenmsApiClient\Curl
- * @covers \LibrenmsApiClient\Log
+ * @covers \LibrenmsApiClient\Cache
  * @covers \LibrenmsApiClient\Common
+ * @covers \LibrenmsApiClient\Curl
+ * @covers \LibrenmsApiClient\FileLogger
+ * @covers \LibrenmsApiClient\Log
+ * @covers \LibrenmsApiClient\DeviceCache
  */
 class LogTest extends TestCase
 {
@@ -31,7 +35,7 @@ class LogTest extends TestCase
         $this->assertIsArray($result);
     }
 
-    public function testGetAlertLogs()
+    public function testGetAlertLogs1()
     {
         $log = $this->log;
         $result = $log->getAlertLogs(null, 1);
@@ -57,6 +61,13 @@ class LogTest extends TestCase
         $nt = date('m/d/Y H:i', strtotime('+1 year'));
         $result = $log->getAlertLogs(null, null, null, $nt, $nt);
         $this->assertNull($result);
+    }
+
+    public function testGetAlertLogs2()
+    {
+        $log = $this->log;
+        $this->expectException(ApiException::class);
+        $log->getAlertLogs('blah', 1, 0);
     }
 
     public function testGetEventLogs()

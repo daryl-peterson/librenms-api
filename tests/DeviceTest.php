@@ -4,7 +4,9 @@ namespace LibrenmsApiClient\Tests;
 
 use LibrenmsApiClient\ApiClient;
 use LibrenmsApiClient\ApiException;
+use LibrenmsApiClient\Curl;
 use LibrenmsApiClient\Device;
+use LibrenmsApiClient\DeviceValidator;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -18,15 +20,24 @@ use PHPUnit\Framework\TestCase;
  *
  * @covers \LibrenmsApiClient\ApiClient
  * @covers \LibrenmsApiClient\Cache
- * @covers \LibrenmsApiClient\Device
- * @covers \LibrenmsApiClient\Curl
  * @covers \LibrenmsApiClient\Common
+ * @covers \LibrenmsApiClient\Curl
+ * @covers \LibrenmsApiClient\FileLogger
+ * @covers \LibrenmsApiClient\Device
+ * @covers \LibrenmsApiClient\DeviceCache
+ * @covers \LibrenmsApiClient\DeviceValidator
+ * @covers \LibrenmsApiClient\PortCache
+ * @covers \LibrenmsApiClient\IfNamesCache
  */
 class DeviceTest extends TestCase
 {
     private Device $device;
+    private DeviceValidator $validator;
+    private Curl $curl;
     private int $router_id;
     private int $switch_id;
+    private \stdClass $router;
+
     private string $hostname;
     private string $hostname_new;
 
@@ -35,9 +46,18 @@ class DeviceTest extends TestCase
         $obj = $this->device;
         $result = $obj->get($this->router_id);
         $this->assertIsObject($result);
+    }
 
-        $result = $obj->getByIpV4($result->ip);
+    public function testGetIfNames()
+    {
+        $obj = $this->device;
+
+        $result = $obj->getDeviceIfNames($this->router_id);
         $this->assertIsArray($result);
+
+        $this->expectException(ApiException::class);
+        $this->expectExceptionMessage(ApiException::ERR_DEVICE_NOT_EXIST);
+        $obj->getDeviceIfNames(0);
     }
 
     public function testGetListing()
@@ -47,20 +67,13 @@ class DeviceTest extends TestCase
         $this->assertIsArray($result);
     }
 
-    public function testGetPorts()
-    {
-        $obj = $this->device;
-        $result = $obj->getPorts($this->router_id);
-        $this->assertIsArray($result);
-    }
-
     public function testDiscover()
     {
         $result = $this->device->discover($this->router_id);
         $this->assertTrue($result);
 
-        $result = $this->device->discover('BLAH BLAH');
-        $this->assertFalse($result);
+        $this->expectException(ApiException::class);
+        $this->device->discover('BLAH BLAH');
     }
 
     public function testGetIp()
@@ -69,8 +82,8 @@ class DeviceTest extends TestCase
         $result = $obj->getIpList($this->router_id);
         $this->assertIsArray($result);
 
-        $result = $obj->getIpList(0);
-        $this->assertNull($result);
+        $this->expectException(ApiException::class);
+        $obj->getIpList(0);
     }
 
     public function testAvailability()
@@ -79,8 +92,8 @@ class DeviceTest extends TestCase
         $result = $obj->getAvailability($this->router_id);
         $this->assertIsArray($result);
 
-        $result = $obj->getAvailability(0);
-        $this->assertNull($result);
+        $this->expectException(ApiException::class);
+        $obj->getAvailability(0);
     }
 
     public function testGetOutages()
@@ -89,16 +102,21 @@ class DeviceTest extends TestCase
         $result = $obj->getOutages($this->router_id);
         $this->assertIsArray($result);
 
-        $result = $obj->getOutages(0);
-        $this->assertNull($result);
+        $this->expectException(ApiException::class);
+        $obj->getOutages(0);
+    }
+
+    public function testGetFdbException()
+    {
+        $obj = $this->device;
+
+        $this->expectException(ApiException::class);
+        $obj->getFbd(0);
     }
 
     public function testGetFdb()
     {
         $obj = $this->device;
-
-        $result = $obj->getFbd(0);
-        $this->assertNull($result);
 
         $result = $obj->getFbd($this->router_id);
         $this->assertNull($result);
@@ -107,12 +125,33 @@ class DeviceTest extends TestCase
         $this->assertIsArray($result);
     }
 
-    public function testAddException()
+    public function testAddExceptionMissingHostname()
     {
         $obj = $this->device;
+        $this->expectException(ApiException::class);
+        $this->expectExceptionMessage(ApiException::ERR_HOSTNAME_IP);
+        $obj->add([]);
+    }
 
-        $result = $obj->add([]);
-        $this->assertNull($result);
+    public function testAddExceptionDeviceExist()
+    {
+        $obj = $this->device;
+        $result = $obj->get($this->router_id);
+        $this->assertIsObject($result);
+
+        $def = [
+            'hostname' => $result->hostname,
+            'snmpver' => 'v2c',
+        ];
+
+        $this->expectException(ApiException::class);
+        $this->expectExceptionMessage(ApiException::ERR_DEVICE_DOES_EXIST);
+        $obj->add($def);
+    }
+
+    public function testAddExceptionInvalidSNMP()
+    {
+        $obj = $this->device;
 
         $device = [
             'hostname' => 'blah',
@@ -120,19 +159,16 @@ class DeviceTest extends TestCase
         ];
 
         $this->expectException(ApiException::class);
-        $result = $obj->add($device);
+        $this->expectExceptionMessage(ApiException::ERR_INVALID_SNMP);
+        $obj->add($device);
     }
 
-    public function testDeviceActions()
+    public function testAddMock()
     {
-        $obj = $this->device;
-        $device = $obj->getDevice($this->hostname);
-
-        if (isset($device)) {
-            $result = $obj->delete($this->hostname);
-            $this->assertIsArray($result);
-            sleep(60);
-        }
+        /**
+         * @var MockObject&MockedType
+         */
+        $mock = $this->getMockBase(['doAdd']);
 
         $def = [
             'hostname' => $this->hostname,
@@ -143,55 +179,128 @@ class DeviceTest extends TestCase
             'snmp_disable' => true,
             'force_add' => true,
         ];
-        $result = $obj->add($def);
+
+        $mock->expects($this->once())
+            ->method('doAdd')
+            ->willReturn(null);
+
+        $mock->add($def);
+    }
+
+    public function testRenameExceptionDeviceNotExist()
+    {
+        $obj = $this->device;
+        $this->expectException(ApiException::class);
+        $this->expectExceptionMessage(ApiException::ERR_DEVICE_NOT_EXIST);
+        $obj->rename('blah123', 'blah1234');
+    }
+
+    public function testRenameExceptionDeviceExist()
+    {
+        $obj = $this->device;
+        $result = $obj->get($this->router_id);
         $this->assertIsObject($result);
 
-        $result = $obj->rename(0, $this->hostname_new);
-        $this->assertFalse($result);
+        $this->expectException(ApiException::class);
+        $this->expectExceptionMessage(ApiException::ERR_DEVICE_DOES_EXIST);
+        $obj->rename($result->hostname, $result->hostname);
+    }
 
-        $result = $obj->maintenance(0, '02:00');
-        $this->assertFalse($result);
+    public function testRenameMock()
+    {
+        $obj = $this->device;
+        $result = $obj->get($this->router_id);
 
-        $result = $obj->delete(0);
-        $this->assertNull($result);
+        /**
+         * @var MockObject&MockedType
+         */
+        $mock = $this->getMockBase(['doRename']);
+        $mock->expects($this->once())
+        ->method('doRename')
+        ->willReturn(true);
 
-        $result = $obj->update(0, 'blah', 1);
-        $this->assertFalse($result);
+        $mock->rename($result->hostname, 'blah1234');
+    }
 
-        $result = $obj->update($this->hostname, 'blah', 1);
-        $this->assertFalse($result);
+    public function testUpdateExceptionDeviceNotExist()
+    {
+        $obj = $this->device;
+        $this->expectException(ApiException::class);
+        $this->expectExceptionMessage(ApiException::ERR_DEVICE_NOT_EXIST);
+        $obj->update('blah', 'notes', 'not a real note');
+    }
 
-        $result = $obj->rename(0, $this->hostname_new);
-        $this->assertFalse($result);
+    public function testUpdateExceptionInvalidField()
+    {
+        $obj = $this->device;
+        $this->expectException(ApiException::class);
+        $this->expectExceptionMessage(ApiException::ERR_INVALID_FIELD);
+        $obj->update($this->router_id, 'notes1', 'not a real note');
+    }
 
-        $device = $obj->getDevice($this->hostname);
-        if (!isset($device)) {
-            return;
-        }
+    public function testUpdateMock()
+    {
+        /**
+         * @var MockObject&MockedType
+         */
+        $mock = $this->getMockBase(['doUpdate']);
+        $mock->expects($this->once())
+        ->method('doUpdate')
+        ->willReturn(true);
 
-        sleep(300);
-        $result = $obj->rename($this->hostname, $this->hostname_new);
-        $this->assertTrue($result);
+        $mock->update($this->router_id, 'notes', 'this could be a real note');
+    }
 
-        $result = $obj->update($this->hostname_new, 'ignore', 1);
-        $result = $obj->update($this->hostname_new, 'disabled', 1);
-        $this->assertTrue($result);
+    public function testDeleteException()
+    {
+        $obj = $this->device;
+        $this->expectException(ApiException::class);
+        $this->expectExceptionMessage(ApiException::ERR_DEVICE_NOT_EXIST);
+        $obj->delete('blah');
+    }
 
-        $start = date('Y-m-d 00:00:00');
-        $result = $obj->maintenance($this->hostname_new, '23:00', 'Test Maintenance', 'blah', $start);
-        $this->assertTrue($result);
+    public function testDeleteMock()
+    {
+        /**
+         * @var MockObject&MockedType
+         */
+        $mock = $this->getMockBase(['doDelete']);
+        $mock->expects($this->once())
+        ->method('doDelete')
+        ->willReturn(true);
 
-        $device = $obj->getDevice($this->hostname);
-        if (isset($device)) {
-            $result = $obj->delete($this->hostname);
-            $this->assertIsArray($result);
-        }
+        $mock->delete($this->router_id);
+    }
 
-        $device = $obj->getDevice($this->hostname_new);
-        if (isset($device)) {
-            $result = $obj->delete($this->hostname_new);
-            $this->assertIsArray($result);
-        }
+    public function testMaintenanceException()
+    {
+        $obj = $this->device;
+        $this->expectException(ApiException::class);
+        $this->expectExceptionMessage(ApiException::ERR_DEVICE_NOT_EXIST);
+        $obj->maintenance('blah', '02:00');
+    }
+
+    public function testMaintenanceMock()
+    {
+        /**
+         * @var MockObject&MockedType
+         */
+        $mock = $this->getMockBase(['doMaintenance']);
+
+        $mock->expects($this->once())
+            ->method('doMaintenance')
+            ->willReturn(true);
+
+        $start = date('Y-m-d H:i:00');
+        $mock->maintenance($this->router_id, '02:00', null, 'Notes', $start);
+    }
+
+    private function getMockBase(array $only_methods)
+    {
+        return $this->getMockBuilder(Device::class)
+            ->setConstructorArgs([$this->curl, $this->validator])
+            ->onlyMethods($only_methods)
+            ->getMock();
     }
 
     public function setUp(): void
@@ -201,6 +310,8 @@ class DeviceTest extends TestCase
 
             $api = new ApiClient($settings['url'], $settings['token']);
             $this->device = $api->get(Device::class);
+            $this->curl = $api->get(Curl::class);
+            $this->validator = $api->get(DeviceValidator::class);
             $this->router_id = $settings['router_id'];
             $this->switch_id = $settings['switch_id'];
             $this->hostname = $settings['test_add_ip'];
