@@ -1,9 +1,6 @@
 .env
-/.vscode/
-/.trash/
-/.dist/
-/.phpunit.cache/
-/tests/config.php
+.*
+!/.gitignore
 /logs/
 /reports/
 /vendor/
