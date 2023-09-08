@@ -2,12 +2,9 @@
 
 namespace LibrenmsApiClient\Tests;
 
-use LibrenmsApiClient\ApiClient;
 use LibrenmsApiClient\ApiException;
-use LibrenmsApiClient\Curl;
 use LibrenmsApiClient\Device;
 use LibrenmsApiClient\DeviceValidator;
-use PHPUnit\Framework\TestCase;
 
 /**
  * Class description.
@@ -29,13 +26,11 @@ use PHPUnit\Framework\TestCase;
  * @covers \LibrenmsApiClient\PortCache
  * @covers \LibrenmsApiClient\IfNamesCache
  */
-class DeviceTest extends TestCase
+class DeviceTest extends BaseTest
 {
     private Device $device;
     private DeviceValidator $validator;
-    private Curl $curl;
-    private int $router_id;
-    private int $switch_id;
+
     private \stdClass $router;
 
     private string $hostname;
@@ -44,7 +39,7 @@ class DeviceTest extends TestCase
     public function testGet()
     {
         $obj = $this->device;
-        $result = $obj->get($this->router_id);
+        $result = $obj->get($this->routerId);
         $this->assertIsObject($result);
     }
 
@@ -52,7 +47,7 @@ class DeviceTest extends TestCase
     {
         $obj = $this->device;
 
-        $result = $obj->getDeviceIfNames($this->router_id);
+        $result = $obj->getDeviceIfNames($this->routerId);
         $this->assertIsArray($result);
 
         $this->expectException(ApiException::class);
@@ -69,7 +64,7 @@ class DeviceTest extends TestCase
 
     public function testDiscover()
     {
-        $result = $this->device->discover($this->router_id);
+        $result = $this->device->discover($this->routerId);
         $this->assertTrue($result);
 
         $this->expectException(ApiException::class);
@@ -79,7 +74,7 @@ class DeviceTest extends TestCase
     public function testGetIp()
     {
         $obj = $this->device;
-        $result = $obj->getIpList($this->router_id);
+        $result = $obj->getIpList($this->routerId);
         $this->assertIsArray($result);
 
         $this->expectException(ApiException::class);
@@ -89,7 +84,7 @@ class DeviceTest extends TestCase
     public function testAvailability()
     {
         $obj = $this->device;
-        $result = $obj->getAvailability($this->router_id);
+        $result = $obj->getAvailability($this->routerId);
         $this->assertIsArray($result);
 
         $this->expectException(ApiException::class);
@@ -99,7 +94,7 @@ class DeviceTest extends TestCase
     public function testGetOutages()
     {
         $obj = $this->device;
-        $result = $obj->getOutages($this->router_id);
+        $result = $obj->getOutages($this->routerId);
         $this->assertIsArray($result);
 
         $this->expectException(ApiException::class);
@@ -118,10 +113,10 @@ class DeviceTest extends TestCase
     {
         $obj = $this->device;
 
-        $result = $obj->getFbd($this->router_id);
+        $result = $obj->getFbd($this->routerId);
         $this->assertNull($result);
 
-        $result = $obj->getFbd($this->switch_id);
+        $result = $obj->getFbd($this->switchId);
         $this->assertIsArray($result);
     }
 
@@ -136,7 +131,7 @@ class DeviceTest extends TestCase
     public function testAddExceptionDeviceExist()
     {
         $obj = $this->device;
-        $result = $obj->get($this->router_id);
+        $result = $obj->get($this->routerId);
         $this->assertIsObject($result);
 
         $def = [
@@ -198,7 +193,7 @@ class DeviceTest extends TestCase
     public function testRenameExceptionDeviceExist()
     {
         $obj = $this->device;
-        $result = $obj->get($this->router_id);
+        $result = $obj->get($this->routerId);
         $this->assertIsObject($result);
 
         $this->expectException(ApiException::class);
@@ -209,7 +204,7 @@ class DeviceTest extends TestCase
     public function testRenameMock()
     {
         $obj = $this->device;
-        $result = $obj->get($this->router_id);
+        $result = $obj->get($this->routerId);
 
         /**
          * @var MockObject&MockedType
@@ -235,7 +230,7 @@ class DeviceTest extends TestCase
         $obj = $this->device;
         $this->expectException(ApiException::class);
         $this->expectExceptionMessage(ApiException::ERR_INVALID_FIELD);
-        $obj->update($this->router_id, 'notes1', 'not a real note');
+        $obj->update($this->routerId, 'notes1', 'not a real note');
     }
 
     public function testUpdateMock()
@@ -248,7 +243,7 @@ class DeviceTest extends TestCase
         ->method('doUpdate')
         ->willReturn(true);
 
-        $mock->update($this->router_id, 'notes', 'this could be a real note');
+        $mock->update($this->routerId, 'notes', 'this could be a real note');
     }
 
     public function testDeleteException()
@@ -269,7 +264,7 @@ class DeviceTest extends TestCase
         ->method('doDelete')
         ->willReturn(true);
 
-        $mock->delete($this->router_id);
+        $mock->delete($this->routerId);
     }
 
     public function testMaintenanceException()
@@ -292,7 +287,7 @@ class DeviceTest extends TestCase
             ->willReturn(true);
 
         $start = date('Y-m-d H:i:00');
-        $mock->maintenance($this->router_id, '02:00', null, 'Notes', $start);
+        $mock->maintenance($this->routerId, '02:00', null, 'Notes', $start);
     }
 
     private function getMockBase(array $only_methods)
@@ -306,16 +301,11 @@ class DeviceTest extends TestCase
     public function setUp(): void
     {
         if (!isset($this->device)) {
-            global $settings;
+            $this->device = $this->api->get(Device::class);
+            $this->validator = $this->api->get(DeviceValidator::class);
 
-            $api = new ApiClient($settings['url'], $settings['token']);
-            $this->device = $api->get(Device::class);
-            $this->curl = $api->get(Curl::class);
-            $this->validator = $api->get(DeviceValidator::class);
-            $this->router_id = $settings['router_id'];
-            $this->switch_id = $settings['switch_id'];
-            $this->hostname = $settings['test_add_ip'];
-            $this->hostname_new = $settings['test_add_gw'];
+            $this->hostname = 'SOMEHOSTNAME';
+            $this->hostname_new = 'SOMEHOSTNAME2';
         }
     }
 }

@@ -15,15 +15,13 @@ namespace LibrenmsApiClient;
  *
  * @todo unit test
  */
-class Wireless
+class Wireless extends Common
 {
-    private ApiClient $api;
     protected Curl $curl;
 
-    public function __construct(ApiClient $api)
+    public function __construct(Curl $curl)
     {
-        $this->api = $api;
-        $this->curl = $api->curl;
+        $this->curl = $curl;
     }
 
     /**
@@ -79,7 +77,8 @@ class Wireless
      */
     public function getGraph(int|string $hostname, string $type, int $sensor_id = null): ?array
     {
-        $url = $this->curl->getApiUrl("/devices/$hostname/graphs/wireless");
+        $device = $this->getDeviceOrException($hostname);
+        $url = $this->curl->getApiUrl("/devices/$device->device_id/graphs/wireless");
 
         if (isset($type)) {
             $url .= "/$type";
@@ -87,17 +86,9 @@ class Wireless
         if (isset($sensor_id)) {
             $url .= "/$sensor_id";
         }
-        $response = $this->curl->get($url);
+        $this->result = $this->curl->get($url);
 
-        if (!isset($response['image'])) {
-            return null;
-        }
-
-        if (0 === count($response)) {
-            return null;
-        }
-
-        return $response['image'];
+        return ((!isset($this->result['image'])) || (0 === count($this->result))) ? null : $this->result['image'];
     }
 
     /**
@@ -108,14 +99,8 @@ class Wireless
     public function hasWireless(int|string $hostname): bool
     {
         $result = $this->getWireless($hostname);
-        if (!isset($result)) {
-            return false;
-        }
-        if (!count($result) > 0) {
-            return false;
-        }
 
-        return true;
+        return (!isset($result) || !count($result) > 0) ? false : true;
     }
 
     /**
@@ -131,7 +116,8 @@ class Wireless
      */
     private function getWireless(int|string $hostname, string $type = null, int $sensor_id = null): ?array
     {
-        $url = $this->curl->getApiUrl("/devices/$hostname/wireless");
+        $device = $this->getDeviceOrException($hostname);
+        $url = $this->curl->getApiUrl("/devices/$device->device_id/wireless");
 
         if (isset($type)) {
             $url .= "/$type";
@@ -139,16 +125,8 @@ class Wireless
         if (isset($sensor_id)) {
             $url .= "/$sensor_id";
         }
-        $response = $this->curl->get($url);
+        $this->result = $this->curl->get($url);
 
-        if (!isset($response['graphs'])) {
-            return null;
-        }
-
-        if (0 === count($response['graphs'])) {
-            return null;
-        }
-
-        return $response['graphs'];
+        return ((!isset($this->result['graphs'])) || (0 === count($this->result['graphs']))) ? null : $this->result['graphs'];
     }
 }

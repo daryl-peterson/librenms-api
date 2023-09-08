@@ -51,6 +51,9 @@ class ApiClient
                 Component::class => \DI\autowire(Component::class)
                     ->constructor(\DI\get(Curl::class)),
 
+                Inventory::class => \DI\autowire(Inventory::class)
+                    ->constructor(\DI\get(Curl::class)),
+
                 Link::class => \DI\autowire(Link::class)
                     ->constructor(\DI\get(Curl::class)),
 

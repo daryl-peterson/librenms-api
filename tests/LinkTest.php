@@ -2,10 +2,8 @@
 
 namespace LibrenmsApiClient\Tests;
 
-use LibrenmsApiClient\ApiClient;
 use LibrenmsApiClient\ApiException;
 use LibrenmsApiClient\Link;
-use PHPUnit\Framework\TestCase;
 
 /**
  * Class description.
@@ -26,9 +24,8 @@ use PHPUnit\Framework\TestCase;
  * @covers \LibrenmsApiClient\Link
  * @covers \LibrenmsApiClient\PortCache
  */
-class LinkTest extends TestCase
+class LinkTest extends BaseTest
 {
-    private ApiClient $api;
     private Link $link;
 
     public function testGetById()
@@ -66,11 +63,8 @@ class LinkTest extends TestCase
 
     public function setUp(): void
     {
-        if (!isset($this->api)) {
-            global $settings;
-
-            $api = new ApiClient($settings['url'], $settings['token']);
-            $this->link = $api->get(Link::class);
+        if (!isset($this->link)) {
+            $this->link = $this->api->get(Link::class);
         }
     }
 }

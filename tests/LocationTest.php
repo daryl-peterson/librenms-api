@@ -2,10 +2,8 @@
 
 namespace LibrenmsApiClient\Tests;
 
-use LibrenmsApiClient\ApiClient;
 use LibrenmsApiClient\ApiException;
 use LibrenmsApiClient\Location;
-use PHPUnit\Framework\TestCase;
 
 /**
  * Location API Unit tests.
@@ -25,10 +23,9 @@ use PHPUnit\Framework\TestCase;
  * @covers \LibrenmsApiClient\DeviceCache
  * @covers \LibrenmsApiClient\PortCache
  */
-class LocationTest extends TestCase
+class LocationTest extends BaseTest
 {
     private Location $location;
-    private $name;
 
     public function testGetListing()
     {
@@ -79,12 +76,8 @@ class LocationTest extends TestCase
 
     public function setUp(): void
     {
-        $this->name = 'TEST LOCATION';
         if (!isset($this->location)) {
-            global $settings;
-
-            $api = new ApiClient($settings['url'], $settings['token']);
-            $this->location = $api->get(Location::class);
+            $this->location = $this->api->get(Location::class);
         }
     }
 }

@@ -2,9 +2,7 @@
 
 namespace LibrenmsApiClient\Tests;
 
-use LibrenmsApiClient\ApiClient;
 use LibrenmsApiClient\Component;
-use PHPUnit\Framework\TestCase;
 
 /**
  * LibreNMS API Component testing.
@@ -21,16 +19,15 @@ use PHPUnit\Framework\TestCase;
  * @covers \LibrenmsApiClient\Component
  * @covers \LibrenmsApiClient\DeviceCache
  */
-class ComponentTest extends TestCase
+class ComponentTest extends BaseTest
 {
     private Component $component;
-    private int $router_id;
 
     public function testAddGetEditDelete()
     {
         $comp = $this->component;
 
-        $device = $comp->getDevice($this->router_id);
+        $device = $comp->getDevice($this->routerId);
         $this->assertIsObject($device);
 
         $resultOrg = $comp->add($device->device_id, 'API TEST');
@@ -62,11 +59,7 @@ class ComponentTest extends TestCase
     public function setUp(): void
     {
         if (!isset($this->component)) {
-            global $settings;
-
-            $api = new ApiClient($settings['url'], $settings['token']);
-            $this->component = $api->get(Component::class);
-            $this->router_id = $settings['router_id'];
+            $this->component = $this->api->get(Component::class);
         }
     }
 }

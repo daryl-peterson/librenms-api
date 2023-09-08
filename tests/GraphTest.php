@@ -2,15 +2,11 @@
 
 namespace LibrenmsApiClient\Tests;
 
-use LibrenmsApiClient\ApiClient;
 use LibrenmsApiClient\ApiException;
 use LibrenmsApiClient\Graph;
-use PHPUnit\Framework\TestCase;
 
 /**
- * Class description.
- *
- * @category
+ * LibreNMS API Graph unit test.
  *
  * @author      Daryl Peterson <@gmail.com>
  * @copyright   Copyright (c) 2020, Daryl Peterson
@@ -24,26 +20,26 @@ use PHPUnit\Framework\TestCase;
  * @covers \LibrenmsApiClient\Graph
  * @covers \LibrenmsApiClient\DeviceCache
  * @covers \LibrenmsApiClient\PortCache
+ * @covers \LibrenmsApiClient\IfNamesCache
  */
-class GraphTest extends TestCase
+class GraphTest extends BaseTest
 {
     private Graph $graph;
-    private int $router_id;
 
     public function testGetPort()
     {
         $graph = $this->graph;
 
-        $device = $graph->getDevice($this->router_id);
+        $device = $graph->getDevice($this->routerId);
         $this->assertIsObject($device);
 
-        $result = $graph->getPort($this->router_id);
+        $result = $graph->getPort($this->routerId);
         $this->assertIsArray($result);
 
         $this->expectException(ApiException::class);
         $graph->getPort(0);
 
-        $result = $graph->getPort($this->router_id, ['lo0']);
+        $result = $graph->getPort($this->routerId, ['blah', 'nope']);
         $this->assertNull($result);
     }
 
@@ -51,30 +47,27 @@ class GraphTest extends TestCase
     {
         $graph = $this->graph;
 
-        $result = $graph->getTypes($this->router_id);
+        $result = $graph->getTypes($this->routerId);
         $this->assertIsArray($result);
         $type = array_pop($result);
 
-        $result = $graph->getByType($this->router_id, $type->name);
+        $result = $graph->getByType($this->routerId, $type->name);
         $this->assertIsArray($result);
-
-        $result = $graph->getByType(0, $type->name);
-        $this->assertNull($result);
 
         $from = date('m/d/Y 00:00');
         $to = date('m/d/Y 12:00');
-        $result = $graph->getByType($this->router_id, $type->name, $from, $to, 'display');
+        $result = $graph->getByType($this->routerId, $type->name, $from, $to, 'display');
         $this->assertIsArray($result);
+
+        $this->expectException(ApiException::class);
+        $this->expectExceptionMessage(ApiException::ERR_DEVICE_NOT_EXIST);
+        $result = $graph->getByType(0, $type->name);
     }
 
     public function setUp(): void
     {
         if (!isset($this->graph)) {
-            global $settings;
-
-            $api = new ApiClient($settings['url'], $settings['token']);
-            $this->graph = $api->get(Graph::class);
-            $this->router_id = $settings['router_id'];
+            $this->graph = $this->api->get(Graph::class);
         }
     }
 }

@@ -2,10 +2,8 @@
 
 namespace LibrenmsApiClient\Tests;
 
-use LibrenmsApiClient\ApiClient;
 use LibrenmsApiClient\ApiException;
 use LibrenmsApiClient\Vlan;
-use PHPUnit\Framework\TestCase;
 
 /**
  * LibreNMS API Vlan unit test.
@@ -23,10 +21,9 @@ use PHPUnit\Framework\TestCase;
  * @covers \LibrenmsApiClient\DeviceCache
  * @covers \LibrenmsApiClient\PortCache
  */
-class VlanTest extends TestCase
+class VlanTest extends BaseTest
 {
     private Vlan $vlan;
-    private $switch_id;
 
     public function test()
     {
@@ -35,7 +32,7 @@ class VlanTest extends TestCase
         $this->assertIsArray($result);
 
         $vlan = array_pop($result);
-        $result = $obj->get($this->switch_id);
+        $result = $obj->get($this->switchId);
         $this->assertIsArray($result);
 
         // $this->expectException(ApiException::class);
@@ -46,11 +43,7 @@ class VlanTest extends TestCase
     public function setUp(): void
     {
         if (!isset($this->vlan)) {
-            global $settings;
-
-            $api = new ApiClient($settings['url'], $settings['token']);
-            $this->switch_id = $settings['switch_id'];
-            $this->vlan = $api->get(Vlan::class);
+            $this->vlan = $this->api->get(Vlan::class);
         }
     }
 }

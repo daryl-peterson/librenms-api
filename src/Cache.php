@@ -20,6 +20,7 @@ class Cache
     public const LOG_LEVEL = 'LMS-API-Log-Level';
     public const LOG_FILE = 'LMS-API-Log-File';
     public const DEVICE_ID = 'LMS-API-Device-Id-';
+    public const DEVICE_ALL = 'LMS-API-Device-All';
     public const DEVICE_HOSTNAME = 'LMS-API-Hostname-';
     public const SENSOR_KEY = 'LMS-API-Sensor-';
     public const PORT_KEY = 'LMS-API-Port-';

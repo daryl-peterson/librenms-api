@@ -3,9 +3,7 @@
 namespace LibrenmsApiClient\Tests;
 
 use LibrenmsApiClient\Alert;
-use LibrenmsApiClient\ApiClient;
 use LibrenmsApiClient\ApiException;
-use PHPUnit\Framework\TestCase;
 
 /**
  * Alert API Unit tests.
@@ -20,7 +18,7 @@ use PHPUnit\Framework\TestCase;
  * @covers \LibrenmsApiClient\Device
  * @covers \LibrenmsApiClient\Log
  */
-class AlertTest extends TestCase
+class AlertTest extends BaseTest
 {
     private Alert $alert;
 
@@ -109,10 +107,7 @@ class AlertTest extends TestCase
     public function setUp(): void
     {
         if (!isset($this->alert)) {
-            global $settings;
-
-            $api = new ApiClient($settings['url'], $settings['token']);
-            $this->alert = $api->get(Alert::class);
+            $this->alert = $this->api->get(Alert::class);
         }
     }
 }

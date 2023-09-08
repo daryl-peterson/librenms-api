@@ -2,10 +2,8 @@
 
 namespace LibrenmsApiClient\Tests;
 
-use LibrenmsApiClient\ApiClient;
 use LibrenmsApiClient\ApiException;
 use LibrenmsApiClient\DeviceGroup;
-use PHPUnit\Framework\TestCase;
 
 /**
  * Class description.
@@ -21,20 +19,20 @@ use PHPUnit\Framework\TestCase;
  * @covers \LibrenmsApiClient\FileLogger
  * @covers \LibrenmsApiClient\DeviceGroup
  */
-class DeviceGroupTest extends TestCase
+class DeviceGroupTest extends BaseTest
 {
     private DeviceGroup $group;
-    private string $name;
+    private string $groupName;
 
     public function testAdd()
     {
         $group = $this->group;
 
         $this->expectException(ApiException::class);
-        $group->add($this->name, false, 'blah', null, null);
+        $group->add($this->groupName, false, 'blah', null, null);
 
         $this->expectException(ApiException::class);
-        $group->add($this->name, true, 'BLAH');
+        $group->add($this->groupName, true, 'BLAH');
     }
 
     public function testGetListing()
@@ -47,11 +45,8 @@ class DeviceGroupTest extends TestCase
     public function setUp(): void
     {
         if (!isset($this->group)) {
-            global $settings;
-
-            $api = new ApiClient($settings['url'], $settings['token']);
-            $this->name = 'TEST RULE';
-            $this->group = $api->get(DeviceGroup::class);
+            $this->groupName = 'TEST RULE';
+            $this->group = $this->api->get(DeviceGroup::class);
         }
     }
 }

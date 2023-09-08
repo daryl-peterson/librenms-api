@@ -2,11 +2,9 @@
 
 namespace LibrenmsApiClient\Tests;
 
-use LibrenmsApiClient\ApiClient;
 use LibrenmsApiClient\ApiException;
 use LibrenmsApiClient\Sensor;
 use LibrenmsApiClient\SensorCache;
-use PHPUnit\Framework\TestCase;
 
 /**
  * Class description.
@@ -27,10 +25,9 @@ use PHPUnit\Framework\TestCase;
  * @covers \LibrenmsApiClient\PortCache
  * @covers \LibrenmsApiClient\SensorCache
  */
-class SensorTest extends TestCase
+class SensorTest extends BaseTest
 {
     private Sensor $sensor;
-    private int $routerId;
 
     /**
      * This must be run first. If sensor is not it cache it calls getListing.
@@ -78,11 +75,7 @@ class SensorTest extends TestCase
     public function setUp(): void
     {
         if (!isset($this->sensor)) {
-            global $settings;
-
-            $api = new ApiClient($settings['url'], $settings['token']);
-            $this->sensor = $api->get(Sensor::class);
-            $this->routerId = $settings['router_id'];
+            $this->sensor = $this->api->get(Sensor::class);
         }
     }
 }

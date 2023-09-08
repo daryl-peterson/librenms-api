@@ -29,13 +29,7 @@ class Graph extends Common
         $url = $this->curl->getApiUrl("/devices/$hostname/graphs");
         $this->result = $this->curl->get($url);
 
-        if (!isset($this->result['graphs']) || (0 === count($this->result['graphs']))) {
-            // @codeCoverageIgnoreStart
-            return null;
-            // @codeCoverageIgnoreEnd
-        }
-
-        return $this->result['graphs'];
+        return (!isset($this->result['graphs']) || (0 === count($this->result['graphs']))) ? null : $this->result['graphs'];
     }
 
     /**
@@ -47,42 +41,52 @@ class Graph extends Common
      * @return array|null Array['type'=>'image/png','src'=>'raw image']
      *
      * @see https://docs.librenms.org/API/Devices/#get_graph_generic_by_hostname
+     *
+     * @throws ApiException
      */
     public function getByType(
         int|string $hostname,
         string $type,
         string $from = null,
         string $to = null,
-        string $output = null
+        string $output = 'display'
     ): ?array {
-        $device = $this->getDevice($hostname);
-        if (!isset($device)) {
-            return null;
-        }
-
+        $device = $this->getDeviceOrException($hostname);
         $url = $this->curl->getApiUrl("/devices/$device->device_id/$type");
         $params = [];
+
+        $this->debug('FIXING INTERFACE NAMES', [
+            'class' => __CLASS__,
+            'function' => __FUNCTION__,
+            'line' => __LINE__,
+            'from' => $from,
+            'to' => $to,
+            'output' => $output,
+        ]);
+
         if (isset($from)) {
             $params['from'] = $from;
         }
         if (isset($to)) {
             $params['to'] = $to;
         }
-        if (isset($output)) {
-            $params['output'] = $output;
-        }
 
+        $params['output'] = $output;
         $suffix = http_build_query($params);
         $url .= "?$suffix";
+
+        $this->debug('FIXING INTERFACE NAMES', [
+            'class' => __CLASS__,
+            'function' => __FUNCTION__,
+            'line' => __LINE__,
+            'params' => $params,
+            'suffix' => $suffix,
+            'url' => $url,
+        ]);
+
         $this->result = $this->curl->get($url);
 
-        if (!isset($this->result['image'])) {
-            // @codeCoverageIgnoreStart
-            return null;
-            // @codeCoverageIgnoreEnd
-        }
-
-        return $this->result['image'];
+        return (!isset($this->result['image'])) ? null : $this->result['image'];
     }
 
     /**
@@ -94,71 +98,59 @@ class Graph extends Common
      *
      * @see https://docs.librenms.org/API/Devices/#get_graph_by_port_hostname
      */
-    public function getPort(int|string $hostname, array $interfaces = null, string $type = null): ?array
+    public function getPort(int|string $hostname, array $interfaces = null, string $type = 'port_bits'): ?array
     {
         $result = [];
-        if (!isset($type)) {
-            $type = 'port_bits';
-        }
-        $list = $this->getDevicePorts($hostname);
-        if (!isset($list)) {
-            return null;
-        }
-        $device = $this->getDevice($hostname);
-
-        if (isset($interfaces)) {
-            $ports = $this->fixInterfaceArray($interfaces);
-        } else {
-            $ports = $list;
-        }
-
-        if (!isset($ports)) {
-            // @codeCoverageIgnoreStart
-            return null;
-            // @codeCoverageIgnoreEnd
-        }
+        $device = $this->getDeviceOrException($hostname);
+        $ports = $this->fixInterfaceArray($hostname, $interfaces);
 
         foreach ($ports as $port) {
-            try {
-                $url = $this->curl->getApiUrl("/devices/$device->device_id/ports/".urlencode($port->ifName)."/$type");
-                $this->result = $this->curl->get($url);
+            $url = $this->curl->getApiUrl("/devices/$device->device_id/ports/".urlencode($port->ifName)."/$type");
+            $this->result = $this->curl->get($url);
 
-                if (!is_array($this->result)) {
-                    // @codeCoverageIgnoreStart
-                    continue;
-                    // @codeCoverageIgnoreEnd
-                }
-                $result[$port->ifName] = $this->result['image'];
-            } catch (\Throwable $th) {
-                $message = $th->getMessage();
-
-                if (str_contains($message, 'No Data ')) {
-                    continue;
-                }
-                if (str_contains($message, 'No Authorization')) {
-                    return null;
-                }
+            if (!is_array($this->result)) {
                 // @codeCoverageIgnoreStart
-                throw new \Exception($message);
+                continue;
                 // @codeCoverageIgnoreEnd
             }
+            $result[$port->ifName] = $this->result['image'];
         }
 
-        if (0 === count($result)) {
-            // @codeCoverageIgnoreStart
-            return null;
-            // @codeCoverageIgnoreEnd
-        }
-
-        return $result;
+        return (0 === count($result)) ? null : $result;
     }
 
-    private function fixInterfaceArray(array $interfaces)
+    private function fixInterfaceArray(int|string $hostname, array|null $interfaces)
     {
+        $ports = $this->getDeviceIfNames($hostname);
+        $interfaces = (isset($interfaces)) ? $interfaces : $ports;
+        $interfaces = (!is_array($interfaces)) ? [] : $interfaces;
+
+        $this->debug('FIXING INTERFACE NAMES', [
+            'class' => __CLASS__,
+            'function' => __FUNCTION__,
+            'line' => __LINE__,
+            'hostname' => $hostname,
+            'ports' => $ports,
+            'interfaces' => $interfaces,
+        ]);
+
         $result = [];
         foreach ($interfaces as $infname) {
+            // @codeCoverageIgnoreStart
+            if (!in_array($infname, $ports)) {
+                continue;
+            }
+            // @codeCoverageIgnoreEnd
             $result[] = (object) ['ifName' => $infname];
         }
+
+        $this->debug('FIXING INTERFACE NAMES', [
+            'class' => __CLASS__,
+            'function' => __FUNCTION__,
+            'line' => __LINE__,
+            'hostname' => $hostname,
+            'result' => $result,
+        ]);
 
         return $result;
     }

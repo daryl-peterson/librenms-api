@@ -2,9 +2,7 @@
 
 namespace LibrenmsApiClient\Tests;
 
-use LibrenmsApiClient\ApiClient;
 use LibrenmsApiClient\System;
-use PHPUnit\Framework\TestCase;
 
 /**
  * Class description.
@@ -17,7 +15,7 @@ use PHPUnit\Framework\TestCase;
  * @covers \LibrenmsApiClient\Curl
  * @covers \LibrenmsApiClient\System
  */
-class SystemTest extends TestCase
+class SystemTest extends BaseTest
 {
     private System $system;
 
@@ -38,10 +36,7 @@ class SystemTest extends TestCase
     public function setUp(): void
     {
         if (!isset($this->system)) {
-            global $settings;
-
-            $api = new ApiClient($settings['url'], $settings['token']);
-            $this->system = $api->get(System::class);
+            $this->system = $this->api->get(System::class);
         }
     }
 }

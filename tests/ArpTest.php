@@ -2,9 +2,7 @@
 
 namespace LibrenmsApiClient\Tests;
 
-use LibrenmsApiClient\ApiClient;
 use LibrenmsApiClient\Arp;
-use PHPUnit\Framework\TestCase;
 
 /**
  * Class description.
@@ -20,7 +18,7 @@ use PHPUnit\Framework\TestCase;
  * @covers \LibrenmsApiClient\Curl
  * @covers \LibrenmsApiClient\DeviceCache
  */
-class ArpTest extends TestCase
+class ArpTest extends BaseTest
 {
     private Arp $arp;
 
@@ -37,10 +35,7 @@ class ArpTest extends TestCase
     public function setUp(): void
     {
         if (!isset($this->arp)) {
-            global $settings;
-
-            $api = new ApiClient($settings['url'], $settings['token']);
-            $this->arp = $api->get(Arp::class);
+            $this->arp = $this->api->get(Arp::class);
         }
     }
 }

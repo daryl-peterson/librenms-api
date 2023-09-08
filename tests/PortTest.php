@@ -2,12 +2,10 @@
 
 namespace LibrenmsApiClient\Tests;
 
-use LibrenmsApiClient\ApiClient;
 use LibrenmsApiClient\ApiException;
 use LibrenmsApiClient\Cache;
 use LibrenmsApiClient\Port;
 use LibrenmsApiClient\PortCache;
-use PHPUnit\Framework\TestCase;
 
 /**
  * LibreNMS API Port unit test.
@@ -26,12 +24,10 @@ use PHPUnit\Framework\TestCase;
  * @covers \LibrenmsApiClient\PortCache
  * @covers \LibrenmsApiClient\IfNamesCache
  */
-class PortTest extends TestCase
+class PortTest extends BaseTest
 {
     private Port $port;
     private Cache $cache;
-    private int $routerId;
-    private string $ifName;
 
     public function testGet()
     {
@@ -42,7 +38,7 @@ class PortTest extends TestCase
 
         $ports = $obj->getDevicePorts($this->routerId);
         foreach ($ports as $port) {
-            if ($port->ifName !== $this->ifName) {
+            if ($port->ifName !== $this->routerIfName) {
                 continue;
             }
             $portId = $port->port_id;
@@ -70,7 +66,7 @@ class PortTest extends TestCase
 
         $ports = $obj->getDevicePorts($this->routerId);
         foreach ($ports as $port) {
-            if ($port->ifName !== $this->ifName) {
+            if ($port->ifName !== $this->routerIfName) {
                 continue;
             }
             $portId = $port->port_id;
@@ -95,7 +91,7 @@ class PortTest extends TestCase
 
         $ports = $obj->getDevicePorts($this->routerId);
         foreach ($ports as $port) {
-            if ($port->ifName !== $this->ifName) {
+            if ($port->ifName !== $this->routerIfName) {
                 continue;
             }
             $alias = $port->ifAlias;
@@ -135,7 +131,7 @@ class PortTest extends TestCase
 
         $ports = PortCache::get($this->routerId);
         foreach ($ports as $port) {
-            if ($port->ifName !== $this->ifName) {
+            if ($port->ifName !== $this->routerIfName) {
                 continue;
             }
             $mac = $port->ifPhysAddress;
@@ -151,7 +147,7 @@ class PortTest extends TestCase
     {
         $obj = $this->port;
 
-        $result = $obj->getStats($this->routerId, $this->ifName);
+        $result = $obj->getStats($this->routerId, $this->routerIfName);
         $this->assertIsObject($result);
 
         $result = $obj->getStats($this->routerId, 'blah');
@@ -164,14 +160,8 @@ class PortTest extends TestCase
     public function setUp(): void
     {
         if (!isset($this->port)) {
-            global $settings;
-
-            $api = new ApiClient($settings['url'], $settings['token']);
-
-            $this->port = $api->get(Port::class);
+            $this->port = $this->api->get(Port::class);
             $this->cache = Cache::getInstance();
-            $this->routerId = $settings['router_id'];
-            $this->ifName = $settings['router_if'];
         }
     }
 }

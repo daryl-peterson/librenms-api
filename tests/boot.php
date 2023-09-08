@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHPUnit boot file.
  *
@@ -12,28 +13,17 @@
 declare(strict_types=1);
 
 require_once dirname(dirname(__FILE__)).'/vendor/autoload.php';
+$path = dirname(dirname(__FILE__));
 
-$dir = dirname(__FILE__);
-if (file_exists($dir.'/config.php')) {
-    require_once $dir.'/config.php';
-} else {
-    global $url, $token, $settings;
+use Dotenv\Dotenv;
+use LibrenmsApiClient\Cache;
+use LibrenmsApiClient\FileLogger;
 
-    $url = readline('URL       : ');
-    $token = readline('TOKEN     : ');
-    $router_id = readline('ROUTER ID : ');
-    $router_hostname = readline('ROUTER HOSTNAME  : ');
-    $switch_id = readline('SWITCH ID  : ');
-    $test_add_ip = readline('TEST ADD IP (MUST BE PINGABLE) : ');
-    $test_add_gw = readline('TEST ADD GATEWAY (MUST BE PINGABLE) : ');
+$dotenv = Dotenv::createImmutable($path);
+// $dotenv->safeLoad();
+$dotenv->load();
+$dotenv->required('TEST_LNMS_API_URL');
 
-    $settings = [
-        'url' => $url,
-        'token' => $token,
-        'router_id' => $router_id,
-        'router_hostname' => $router_hostname,
-        'switch_id' => $switch_id,
-        'test_add_ip' => $test_add_ip,
-        'test_add_gw' => $test_add_gw,
-    ];
-}
+$cache = Cache::getInstance();
+$cache->set(Cache::LOG_FILE, '/tmp/api-client.log');
+$cache->set(Cache::LOG_LEVEL, FileLogger::DEBUG_LEVEL);

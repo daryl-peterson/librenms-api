@@ -2,10 +2,8 @@
 
 namespace LibrenmsApiClient\Tests;
 
-use LibrenmsApiClient\ApiClient;
 use LibrenmsApiClient\ApiException;
 use LibrenmsApiClient\Log;
-use PHPUnit\Framework\TestCase;
 
 /**
  * Log API Unit tests.
@@ -24,7 +22,7 @@ use PHPUnit\Framework\TestCase;
  * @covers \LibrenmsApiClient\Log
  * @covers \LibrenmsApiClient\DeviceCache
  */
-class LogTest extends TestCase
+class LogTest extends BaseTest
 {
     private Log $log;
 
@@ -104,10 +102,7 @@ class LogTest extends TestCase
     public function setUp(): void
     {
         if (!isset($this->log)) {
-            global $settings;
-
-            $api = new ApiClient($settings['url'], $settings['token']);
-            $this->log = $api->get(Log::class);
+            $this->log = $this->api->get(Log::class);
         }
     }
 }

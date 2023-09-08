@@ -43,9 +43,12 @@ class DeviceCache
         }
         $cache = Cache::getInstance();
 
+        $ids = [];
         foreach ($list as $device) {
             $cache->set(Cache::DEVICE_ID.$device->device_id, $device);
             $cache->set(Cache::DEVICE_HOSTNAME.$device->hostname, $device->device_id);
+            $ids[] = $device->device_id;
         }
+        $cache->set(Cache::DEVICE_ALL, $ids);
     }
 }

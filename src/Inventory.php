@@ -13,15 +13,13 @@ namespace LibrenmsApiClient;
  *
  * @since       0.0.2
  */
-class Inventory
+class Inventory extends Common
 {
-    private ApiClient $api;
     protected Curl $curl;
 
-    public function __construct(ApiClient $api)
+    public function __construct(Curl $curl)
     {
-        $this->api = $api;
-        $this->curl = $api->curl;
+        $this->curl = $curl;
     }
 
     /**
@@ -30,17 +28,16 @@ class Inventory
      * @param int|string $hostname Hostname can be either the device hostname or id
      *
      * @see https://docs.librenms.org/API/Inventory/#get_inventory_for_device
+     *
+     * @throws ApiException
      */
     public function getListing(int|string $hostname): ?array
     {
-        $url = $this->curl->getApiUrl("/inventory/$hostname/all");
-        $result = $this->curl->get($url);
+        $device = $this->getDeviceOrException($hostname);
+        $url = $this->curl->getApiUrl("/inventory/$device->device_id/all");
+        $this->result = $this->curl->get($url);
 
-        if (!isset($result) || !isset($result['inventory'])) {
-            return null;
-        }
-
-        return $result['inventory'];
+        return (!isset($this->result['inventory'])) ? null : $this->result['inventory'];
     }
 
     /**
@@ -49,17 +46,16 @@ class Inventory
      * @param int|string $hostname Hostname can be either the device hostname or id
      *
      * @see https://docs.librenms.org/API/Inventory/#get_inventory
+     *
+     * @throws ApiException
      */
     public function get(int|string $hostname)
     {
-        $url = $this->curl->getApiUrl("/inventory/$hostname");
-        $result = $this->curl->get($url);
+        $device = $this->getDeviceOrException($hostname);
+        $url = $this->curl->getApiUrl("/inventory/$device->device_id");
+        $this->result = $this->curl->get($url);
 
-        if (!isset($result) || !isset($result['inventory'])) {
-            return null;
-        }
-
-        return $result['inventory'];
+        return (!isset($this->result['inventory'])) ? null : $this->result['inventory'];
     }
 
     /**
@@ -91,51 +87,26 @@ class Inventory
      */
     public function getType(): array
     {
-        $devices = $this->api->device->getListing();
-        $types = [];
-        if (!isset($devices)) {
-            return null;
-        }
-
-        if (!isset($devices['org'])) {
-            return null;
-        }
-
-        foreach ($devices['org'] as $device) {
-            if (in_array($device->type, $types)) {
-                continue;
-            }
-            if (!isset($device->type) || empty($device->type)) {
-                continue;
-            }
-
-            $types[] = $device->type;
-        }
-
-        return $types;
+        return $this->getField('type');
     }
 
     private function getField(string $field)
     {
-        $devices = $this->api->device->getListing();
+        $devices = $this->getDeviceBy('all');
 
         $result = [];
-        foreach ($devices['org'] as $device) {
+        foreach ($devices as $device) {
             $item = trim($device->$field);
 
-            if (empty($item)) {
+            if (empty($item) || in_array($item, $result)) {
                 continue;
             }
-            if (!in_array($item, $result)) {
-                $result[] = $item;
-            }
+
+            $result[] = $item;
         }
 
-        if (0 === count($result)) {
-            return null;
-        }
         sort($result);
 
-        return $result;
+        return (0 === count($result)) ? null : $result;
     }
 }

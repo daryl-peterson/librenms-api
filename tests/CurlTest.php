@@ -2,10 +2,8 @@
 
 namespace LibrenmsApiClient\Tests;
 
-use LibrenmsApiClient\ApiClient;
 use LibrenmsApiClient\ApiException;
 use LibrenmsApiClient\Curl;
-use PHPUnit\Framework\TestCase;
 
 /**
  * Test Curl.
@@ -17,12 +15,8 @@ use PHPUnit\Framework\TestCase;
  * @covers \LibrenmsApiClient\ApiClient
  * @covers \LibrenmsApiClient\Curl
  */
-class CurlTest extends TestCase
+class CurlTest extends BaseTest
 {
-    private Curl $curl;
-    private string $url;
-    private string $token;
-
     public function testResovleFail()
     {
         $curl = new Curl('https://blah.example.com', $this->token);
@@ -75,13 +69,7 @@ class CurlTest extends TestCase
     public function setUp(): void
     {
         if (!isset($this->curl)) {
-            global $settings;
-
-            $api = new ApiClient($settings['url'], $settings['token']);
-
-            $this->url = $settings['url'];
-            $this->token = $settings['token'];
-            $this->curl = $api->get(Curl::class);
+            $this->curl = $this->api->get(Curl::class);
         }
     }
 }
